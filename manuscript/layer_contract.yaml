@@ -1,5 +1,22 @@
-# Code-centric exemplar: optional monorepo adapters only.
-allow_infrastructure_imports:
-  - src/analysis/_infra.py
-  - src/_runtime.py
-  - src/benchmark_support.py
+layers:
+  pure_core:
+    files:
+      - src/from_russia_with_love/entrapment_engine.py
+      - src/from_russia_with_love/sigint.py
+      - src/from_russia_with_love/handoff_protocol.py
+    rule: no bond_api, no infrastructure imports
+  adapter:
+    files:
+      - src/from_russia_with_love/mission.py
+    rule: only module importing bond_api (frozen protocol)
+  workflow:
+    files:
+      - src/from_russia_with_love/manuscript_variables.py
+      - src/from_russia_with_love/figures/lure_surface.py
+    rule: pure core + yaml/matplotlib, no bond_api
+  scripts:
+    files:
+      - scripts/run_mission.py
+      - scripts/00_preflight.py
+      - scripts/z_generate_manuscript_variables.py
+    rule: thin orchestrators, sys.path bootstrap

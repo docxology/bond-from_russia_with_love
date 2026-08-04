@@ -1,30 +1,21 @@
 {
+  "title": "LURES — From Russia with Love (1963) Special-Agent Mission Software",
+  "description": "PROJECT BOND film package: entrapment/deception playbook engine, SIGINT channel interception simulation, and defector handoff protocol, wired to the frozen bond-api MissionProvider protocol.",
+  "upload_type": "software",
+  "license": "MIT",
   "creators": [
     {
-      "affiliation": "Active Inference Institute",
-      "name": "Friedman, Daniel Ari",
-      "orcid": "0000-0001-6232-9096"
+      "name": "Daniel Ari Friedman",
+      "orcid": "0000-0001-6232-9096",
+      "affiliation": "Active Inference Institute"
     }
   ],
-  "description": "Source code for Convergence Analysis of Gradient Descent Optimization (2026).",
   "keywords": [
-    "optimization algorithms",
-    "gradient descent",
-    "convergence analysis",
-    "numerical methods",
-    "mathematical programming",
-    "reproducible research",
-    "infrastructure automation"
+    "entrapment playbook",
+    "SIGINT interception",
+    "defector handoff protocol",
+    "state machine",
+    "deterministic simulation"
   ],
-  "license": "MIT",
-  "related_identifiers": [
-    {
-      "identifier": "10.5281/zenodo.20417136",
-      "relation": "isVersionOf",
-      "scheme": "doi"
-    }
-  ],
-  "title": "Convergence Analysis of Gradient Descent Optimization",
-  "upload_type": "software",
-  "version": "2.5.2"
+  "version": "0.1.0"
 }
