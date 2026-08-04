@@ -6,10 +6,22 @@ claims:
     source: src/from_russia_with_love/entrapment_engine.py
     token: LURES_BITE_PROBABILITY
     provenance: computed deterministically, logistic surface, seed 11
+  - id: allocation-value
+    source: src/from_russia_with_love/bait_allocation.py
+    token: LURES_ALLOC_VALUE
+    provenance: exact 0/1 knapsack over the canonical target pool, seed-free
   - id: sigint-recovered-exact
     source: src/from_russia_with_love/sigint.py
     token: LURES_RECOVERED_EXACT
     provenance: computed, 80 dB clean channel, seed 11
+  - id: tdoa-error
+    source: src/from_russia_with_love/direction_finding.py
+    token: LURES_TDOA_ERROR
+    provenance: Gauss-Newton TDOA estimate error, seeded timing noise
+  - id: schedule-count
+    source: src/from_russia_with_love/courier_schedule.py
+    token: LURES_SCHEDULE_COUNT
+    provenance: earliest-finish-first windowed scheduling, seed-free
   - id: handoff-state
     source: src/from_russia_with_love/handoff_protocol.py
     token: LURES_HANDOFF_STATE

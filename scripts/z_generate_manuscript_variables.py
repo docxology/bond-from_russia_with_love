@@ -19,6 +19,7 @@ if str(SRC) not in sys.path:
 
 def main(argv: list[str] | None = None) -> int:
     from from_russia_with_love.figures.lure_surface import plot_lure_surface
+    from from_russia_with_love.figures.tdoa_geometry import plot_tdoa_geometry
     from from_russia_with_love.manuscript_variables import generate_variables
 
     allow_draft = "--allow-draft" in (argv or sys.argv[1:])
@@ -32,9 +33,10 @@ def main(argv: list[str] | None = None) -> int:
     with tokens_path.open("w", encoding="utf-8") as handle:
         json.dump(variables, handle, indent=2, sort_keys=True)
     plot_lure_surface(fig_dir / "lure_surface.png")
+    plot_tdoa_geometry(fig_dir / "tdoa_geometry.png")
 
     print(f"wrote {len(variables)} manuscript tokens -> {tokens_path}")
-    print(f"figure -> {fig_dir / 'lure_surface.png'}")
+    print(f"figures -> {fig_dir / 'lure_surface.png'}, {fig_dir / 'tdoa_geometry.png'}")
     return 0
 
 

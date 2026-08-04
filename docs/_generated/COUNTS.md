@@ -5,8 +5,9 @@ from the test run).
 
 | Metric | Value |
 |---|---|
-| Tests passing | 75 |
-| src line+branch coverage | 100.00% |
+| Tests passing | 113 |
+| src line+branch coverage | 99.16% |
 | Coverage gate | >=90% (`--cov-fail-under=90`) |
 | Mock framework usage | none |
 | Legacy lineage strings (`template[_]code_project`) | 0 |
+| Domain concept modules | 6 (+ scenario, figures) |

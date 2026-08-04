@@ -4,8 +4,9 @@
 
 Every engine is deterministic. The entrapment engine uses a fixed logistic
 model and seeded lure generation; SIGINT uses a seeded keystream and seeded
-noise (seed 0 = noise-free); the handoff protocol uses SHA-256 only — no
-random draws, no wall-clock time. Fixed seed: config `mission.seed`.
+noise (seed 0 = noise-free); TDOA timing noise is seeded; the courier and
+handoff engines use no randomness at all (SHA-256 only). Fixed seed:
+config `mission.seed`.
 
 ## Verification Gates
 
@@ -19,4 +20,5 @@ random draws, no wall-clock time. Fixed seed: config `mission.seed`.
 | Artifact | Path |
 |---|---|
 | LURE surface figure | `output/figures/lure_surface.png` |
+| TDOA geometry figure | `output/figures/tdoa_geometry.png` |
 | Manuscript variable map | `output/data/manuscript_variables.json` |

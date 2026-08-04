@@ -159,6 +159,18 @@ class HandoffProtocol:
         self.complete()
         return self.result()
 
+    def run_red_path(self) -> HandoffResult:
+        """Run the abort drill: a wrong confirm code ends in ``ABORT``.
+
+        Deterministic: approach, challenge, a deliberately wrong confirm, then
+        the terminal ABORT state — proof that only the exact confirm code
+        completes a handoff.
+        """
+        self.meet()
+        self.challenge()
+        self.confirm("WRONG-CODE")
+        return self.result()
+
     def result(self) -> HandoffResult:
         """Return the current outcome (state, event path, confirm code)."""
         return HandoffResult(

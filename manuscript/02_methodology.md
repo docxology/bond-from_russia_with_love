@@ -23,7 +23,29 @@ $$
 with a single terminal $\text{ABORTED}$ reachable from several stages; any
 event not in the transition table raises an error and leaves state unchanged.
 
-## 2.2 SIGINT channel interception simulation
+## 2.2 Lure-budget allocation
+
+Given a pool of analytical targets each carrying an operational value $v_i$,
+a susceptibility $s_i$, and a lure cost $c_i$, the mission decides which
+targets to lure under a fixed budget $B$. The profit of luring target $i$
+with a campaign of strength $q$ is its *expected engagement value*
+
+$$
+\text{profit}_i = v_i \cdot p(q, s_i),
+$$
+
+and the allocation is the exact **0/1 knapsack**
+
+$$
+\max \sum_i \text{profit}_i \cdot x_i \quad \text{s.t.} \quad
+\sum_i c_i x_i \le B,\; x_i \in \{0,1\},
+$$
+
+solved by dynamic programming (@martello1990knapsack). A
+profit-per-unit greedy heuristic is computed as the baseline; the exact
+solution always dominates it.
+
+## 2.3 SIGINT channel interception simulation
 
 Transmitted symbols are the byte magnitudes of the message, optionally
 enciphered by **layered XOR keystream ciphers**. Each layer derives a
@@ -37,10 +59,35 @@ $$
 
 The interceptor rounds each noisy sample to the nearest symbol, deciphers in
 reverse cipher order, and measures the **empirical SNR** of the capture
-against ground truth. Traffic profiling (channel width, peak symbol)
-supports downstream triage.
+against ground truth. An energy-threshold **burst segmentation** splits the
+captured envelope into transmission bursts so the interceptor knows when, and
+for how long, the channel was active.
 
-## 2.3 Defector handoff protocol
+## 2.4 TDOA direction finding
+
+Four fixed intercept sites record the arrival of a single interception burst,
+and the mission geolocates the transmitter by **time-difference-of-arrival**
+hyperbolation (@chan1994hyperbolic). For receiver pairs $(i,j)$ with measured
+TDOAs $\tau_{ij}$,
+
+$$
+h_{ij}(x) = \frac{\|x - r_i\| - \|x - r_j\|}{c},
+$$
+
+and the transmitter position is the non-linear least-squares minimiser of
+$\sum_{ij} (h_{ij}(x) - \tau_{ij})^2$, solved by a deterministic
+Gauss–Newton iteration from the receiver centroid. Timing noise is seeded, so
+the same scenario always yields the same estimate.
+
+## 2.5 Courier handoff scheduling
+
+A courier must visit defector-handoff rendezvous, each occupying a fixed
+duration inside a time window $[e_i, l_i]$. The planner maximises the number
+of completed meets by **earliest-finish-first interval scheduling**
+(@kleinberg2005algorithm): windows are sorted by their latest start and taken
+whenever they fit after the current position.
+
+## 2.6 Defector handoff protocol
 
 A handoff is a deterministic state machine over
 
@@ -56,4 +103,4 @@ $$
 $$
 
 Only an exact confirm-code match advances to `CONFIRM`; any other confirm
-code lands the protocol in `ABORT`.
+code lands the protocol in `ABORT` (the red-path drill).

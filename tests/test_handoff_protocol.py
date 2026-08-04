@@ -119,3 +119,14 @@ def test_handoff_result_fields() -> None:
 
 def test_stage_order_contains_all_states() -> None:
     assert set(STAGE_ORDER) == {s.value for s in HandoffState}
+
+
+def test_run_red_path_aborts() -> None:
+    protocol = HandoffProtocol(
+        call_sign="ROZA", challenge="the cow jumped over the moon"
+    )
+    result = protocol.run_red_path()
+    assert result.state == HandoffState.ABORT
+    # the red path never reaches HANDOFF and never accepts a wrong code
+    assert "handoff:" not in "\n".join(result.path)
+    assert isinstance(result, HandoffResult)

@@ -30,8 +30,8 @@ def test_brief_shape() -> None:
     brief = provider.brief()
     assert isinstance(brief, MissionBrief)
     assert brief.codename == "LURES"
-    assert len(brief.objectives) == 3
-    assert len(brief.assets) == 2
+    assert len(brief.objectives) == 6
+    assert len(brief.assets) == 3
     assert len(brief.constraints) >= 1
 
 
@@ -46,7 +46,7 @@ def test_plan_shape() -> None:
     provider = MissionProvider()
     plan = provider.plan(provider.brief())
     assert isinstance(plan, MissionPlan)
-    assert len(plan.steps) == 5
+    assert len(plan.steps) == 8
     assert plan.steps[0].name == "bait"
     assert plan.steps[-1].name == "verify"
 
@@ -60,13 +60,18 @@ def test_execute_deterministic_success() -> None:
     assert first.success is True
     assert first.results["handoff_state"] == "handoff"
     assert first.results["recovered_exact"] is True
+    assert first.results["tdoa_error"] < 0.5
+    assert first.results["schedule_count"] >= 1
     assert isinstance(first.provenance, Provenance)
     assert first.provenance.seed == 11
     # full determinism: identical result dicts
     assert first.results == second.results
     assert first.results["outputs"] == (
         "bait",
+        "allocate",
         "intercept",
+        "geolocate",
+        "schedule",
         "handoff",
         "package",
         "verify",
@@ -87,7 +92,7 @@ def test_debrief_lessons() -> None:
     outcome = provider.execute(plan)
     debrief = provider.debrief(outcome)
     assert debrief.outcome is outcome
-    assert len(debrief.lessons) == 3
+    assert len(debrief.lessons) == 5
 
 
 def test_gadgets_registered() -> None:
@@ -102,7 +107,9 @@ def test_gadgets_registered() -> None:
 
 
 def test_gadgets_global_shape() -> None:
-    assert set(("bait_profiles", "ciphers", "handoff_call_signs")) <= set(GADGETS)
+    assert set(("bait_profiles", "ciphers", "handoff_call_signs", "receivers")) <= set(
+        GADGETS
+    )
     assert isinstance(GADGETS["bait_profiles"], tuple)
 
 
@@ -115,7 +122,16 @@ def test_import_without_bond_api_fallback() -> None:
     package_dir = (
         Path(__file__).resolve().parent.parent / "src" / "from_russia_with_love"
     )
-    for mod in ("entrapment_engine", "sigint", "handoff_protocol"):
+    pure_modules = (
+        "entrapment_engine",
+        "sigint",
+        "handoff_protocol",
+        "bait_allocation",
+        "direction_finding",
+        "courier_schedule",
+        "scenario",
+    )
+    for mod in pure_modules:
         assert importlib.import_module(f"from_russia_with_love.{mod}") is not None
         text = (package_dir / f"{mod}.py").read_text(encoding="utf-8")
         assert "bond_api" not in text and "bond-api" not in text, (

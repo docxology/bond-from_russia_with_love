@@ -33,5 +33,8 @@ and *exact round-trips* (`encipher`→`decipher`, `bytes_to_symbols`→`symbols_
 
 ## Coverage gate
 
-`uv run pytest tests/ --cov=src --cov-fail-under=90` — the suite reaches
-100% line+branch on `src/`.
+`uv run pytest tests/ --cov=src --cov-fail-under=90` — the suite sits at ~99%
+line+branch on `src/`. New concept modules (bait allocation 0/1 knapsack, TDOA
+Gauss–Newton geolocation, courier interval scheduling) are tested with exact
+known-answer datasets and strict non-triviality assertions (optimal > greedy,
+noise-free TDOA error ~ 0, schedules with genuinely unscheduled windows).

@@ -41,6 +41,7 @@ __all__ = [
     "derive_keystream",
     "intercept_channel",
     "measure_snr_db",
+    "segment_bursts",
     "symbols_to_bytes",
     "traffic_profile",
     "bytes_to_symbols",
@@ -193,6 +194,42 @@ def traffic_profile(symbols: np.ndarray) -> dict[str, object]:
         "peak_symbol": top_index,
         "peak_frequency": int(counts[top_index]),
     }
+
+
+def segment_bursts(
+    envelope: np.ndarray,
+    threshold: float,
+    min_gap: int = 0,
+) -> tuple[tuple[int, int], ...]:
+    """Segment an energy envelope into transmission bursts.
+
+    A sample belongs to a burst when ``envelope > threshold``; bursts are
+    emitted as half-open index ranges ``(start, end)``. Two bursts separated
+    by at most ``min_gap`` silent samples are merged into one (fading
+    tolerance). Deterministic; returns an empty tuple for an all-quiet
+    envelope.
+    """
+    arr = np.asarray(envelope, dtype=np.float64)
+    if arr.size == 0:
+        raise ValueError("cannot segment an empty envelope")
+    active = arr > threshold
+    bursts: list[tuple[int, int]] = []
+    start: int | None = None
+    silence = 0
+    for index, is_active in enumerate(active.tolist()):
+        if is_active:
+            if start is None:
+                start = index
+            silence = 0
+        elif start is not None:
+            silence += 1
+            if silence > min_gap:
+                bursts.append((start, index - min_gap))
+                start = None
+                silence = 0
+    if start is not None:
+        bursts.append((start, len(arr)))
+    return tuple(bursts)
 
 
 def intercept_channel(

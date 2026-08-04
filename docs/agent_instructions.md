@@ -21,9 +21,14 @@ this directory. This tree is **local-only** — there is no remote, never push.
 
 | Surface | Rule |
 |---|---|
-| `src/from_russia_with_love/{entrapment_engine,sigint,handoff_protocol}.py` | Pure domain core — **no** `bond_api`/`infrastructure` imports |
+| `src/from_russia_with_love/{entrapment_engine,bait_allocation,sigint,direction_finding,courier_schedule,handoff_protocol,scenario}.py` | Pure domain core — **no** `bond_api`/`infrastructure` imports |
 | `src/from_russia_with_love/mission.py` | Thin adapter — the only file importing the frozen `bond_api` protocol |
+| `src/from_russia_with_love/manuscript_variables.py`, `figures/` | consume the canonical `scenario.py`; no `bond_api` |
 | `scripts/` | Thin CLIs (brief/recon/plan/execute/debrief, preflight, manuscript vars) |
+
+Scenario constants live ONLY in `src/from_russia_with_love/scenario.py`, the
+single source of truth shared by `mission.py`, `manuscript_variables.py`, and
+the figure generators — never duplicate a mission metric in two places.
 
 ## Mission lifecycle
 

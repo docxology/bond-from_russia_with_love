@@ -9,21 +9,37 @@ conditions:
     engine: entrapment_engine
     lure_id: honey-trap-alpha
     engagement_threshold: 0.5
+  - name: bait-allocation
+    engine: bait_allocation
+    budget: 5
+    lure_strength: 0.6
   - name: sigint-intercept
     engine: sigint
     snr_db: 80.0
     cipher_layers: 2
+  - name: tdoa-geolocation
+    engine: direction_finding
+    receivers: 4
+    noise_std: 0.1
+  - name: courier-schedule
+    engine: courier_schedule
+    rendezvous: 5
+    start_time: 0.0
   - name: defector-handoff
     engine: handoff_protocol
     call_sign: ROZA
-    path: green
+    path: green + red drill
 
 primary_metric:
   - recovered_exact
+  - tdoa_error < 0.5
+  - schedule_count >= 1
   - handoff_state == handoff
 
 expected_artifacts:
   - output/figures/lure_surface.png
+  - output/figures/tdoa_geometry.png
 
 baseline:
   - deterministic byte-identity across reruns
+  - exact allocation dominates greedy baseline

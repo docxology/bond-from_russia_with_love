@@ -1,7 +1,8 @@
 # AGENTS.md — LURES (From Russia with Love, 1963)
 
 Mission codename **LURES** — a PROJECT BOND film package implementing an
-entrapment/deception playbook engine, SIGINT channel interception, and a
+entrapment/deception playbook engine, lure-budget allocation, SIGINT channel
+interception, TDOA direction finding, courier handoff scheduling, and a
 defector handoff protocol.
 
 ## Hard constraints (shared BOND preamble)
@@ -12,7 +13,7 @@ defector handoff protocol.
 - Path-scoped commits inside YOUR own git repo only.
 - No mock framework. Real data + computation only; deterministic fakes
   implement the REAL protocol.
-- ≥90% line+branch coverage on `src/`.
+- ≥90% line+branch coverage on `src/` (currently ~99%).
 - Deterministic: fixed seeds, no untracked RNG, no wall-clock in tracked files.
 - Thin `scripts/`; business logic in `src/`.
 - `ruff check+format` and `mypy` clean on `src/` and `scripts/`.
@@ -24,10 +25,15 @@ defector handoff protocol.
 
 | Surface | Rule |
 |---|---|
-| `entrapment_engine.py`, `sigint.py`, `handoff_protocol.py` | Pure — no `bond_api`/`infrastructure` imports |
+| `entrapment_engine.py`, `bait_allocation.py`, `sigint.py`, `direction_finding.py`, `courier_schedule.py`, `handoff_protocol.py`, `scenario.py` | Pure — no `bond_api`/`infrastructure` imports |
 | `mission.py` | Thin adapter; the only module importing `bond_api` |
-| `manuscript_variables.py`, `figures/` | pure core + yaml/matplotlib |
+| `manuscript_variables.py`, `figures/` | pure core + yaml/matplotlib; consume `scenario.py` |
 | `scripts/` | thin orchestrators |
+
+The public protocol shape is **stable** and consumed cross-package: the
+`MissionProvider` class (film + brief/recon/plan/execute/debrief) and the
+module-level `GADGETS` dict + `register_gadgets()` hook. Deepen inside the
+package; do not break discovery.
 
 ## Verification (before done)
 

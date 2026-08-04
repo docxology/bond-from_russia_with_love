@@ -5,7 +5,10 @@ mission:
   film: from_russia_with_love
   concepts:
     - entrapment/deception playbook engine
+    - lure-budget allocation (0/1 knapsack)
     - SIGINT channel interception simulation
+    - TDOA direction finding (Gauss-Newton)
+    - courier handoff scheduling (interval)
     - defector handoff protocol
 
 review_gates:
@@ -22,6 +25,7 @@ source_policy:
 
 artifact_expectations:
   - output/figures/lure_surface.png
+  - output/figures/tdoa_geometry.png
   - output/data/manuscript_variables.json
 
 benchmark_rubric:

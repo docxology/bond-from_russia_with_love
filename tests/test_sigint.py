@@ -16,6 +16,7 @@ from from_russia_with_love.sigint import (
     encode_symbols,
     intercept_channel,
     measure_snr_db,
+    segment_bursts,
     symbols_to_bytes,
     traffic_profile,
 )
@@ -136,3 +137,43 @@ def test_intercept_channel_deterministic() -> None:
     b = intercept_channel("repeat me", layers, snr_db=20.0, seed=9)
     assert a["captured_samples"] == b["captured_samples"]
     assert a["recovered_plaintext"] == b["recovered_plaintext"]
+
+
+def test_segment_bursts_basic() -> None:
+    envelope = np.array([0.1, 2.0, 3.0, 0.1, 0.1, 4.0, 5.0, 0.1, 2.0], dtype=np.float64)
+    bursts = segment_bursts(envelope, threshold=0.5, min_gap=1)
+    assert bursts == ((1, 3), (5, 9))
+
+
+def test_segment_bursts_empty() -> None:
+    with pytest.raises(ValueError):
+        segment_bursts(np.array([]), 0.5)
+
+
+def test_segment_bursts_all_quiet() -> None:
+    envelope = np.zeros(6, dtype=np.float64)
+    assert segment_bursts(envelope, threshold=0.5) == ()
+
+
+def test_segment_bursts_min_gap_merges() -> None:
+    # Two bursts a single quiet sample apart merge when min_gap >= 1.
+    envelope = np.array([1.0, 0.0, 1.0], dtype=np.float64)
+    assert segment_bursts(envelope, 0.5, min_gap=1) == ((0, 3),)
+    # with min_gap 0 they stay separate
+    assert segment_bursts(envelope, 0.5, min_gap=0) == ((0, 1), (2, 3))
+
+
+def test_segment_bursts_burst_covers_interception() -> None:
+    from from_russia_with_love.sigint import intercept_channel
+
+    layers = (CipherLayer(key=b"VALENKA", seed=3),)
+    channel = intercept_channel("burst test", layers, snr_db=40.0, seed=11)
+    envelope = np.abs(np.asarray(channel["captured_samples"], dtype=np.float64))
+    bursts = segment_bursts(
+        envelope, threshold=0.5 * float(np.mean(envelope)), min_gap=1
+    )
+    assert bursts  # the transmission was detected as at least one burst
+    # the burst(s) cover essentially the whole message (a few edge samples may
+    # sit below the energy threshold at moderate SNR)
+    total = sum(end - start for start, end in bursts)
+    assert total >= len(b"burst test") - 3
