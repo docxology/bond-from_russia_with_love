@@ -42,8 +42,18 @@ $$
 $$
 
 solved by dynamic programming (@martello1990knapsack). A
-profit-per-unit greedy heuristic is computed as the baseline; the exact
-solution always dominates it.
+profit-per-unit greedy heuristic is computed as the baseline.
+
+That the exact solution is never worse than the greedy one is a property of
+the exact solver, not of any particular target pool: it holds by construction
+and carries no information about a scenario. The reportable quantity is
+therefore the *size* of the gap on a given instance, which is not fixed in
+advance. Section 3.1 reports it on two instances: the canonical target pool,
+where it is zero, and a **witness pool** (`scenario.GREEDY_WITNESS_TARGETS`)
+constructed so that the highest profit-density target consumes budget the
+optimum needs elsewhere, where it is strictly positive. Only the second
+instance distinguishes the two solvers, and the test suite pins the strict
+inequality on it.
 
 ## 2.3 SIGINT channel interception simulation
 
@@ -67,7 +77,7 @@ for how long, the channel was active.
 
 Four fixed intercept sites record the arrival of a single interception burst,
 and the mission geolocates the transmitter by **time-difference-of-arrival**
-hyperbolation (@chan1994hyperbolic). For receiver pairs $(i,j)$ with measured
+hyperbolation. For receiver pairs $(i,j)$ with measured
 TDOAs $\tau_{ij}$,
 
 $$
@@ -76,8 +86,15 @@ $$
 
 and the transmitter position is the non-linear least-squares minimiser of
 $\sum_{ij} (h_{ij}(x) - \tau_{ij})^2$, solved by a deterministic
-Gauss–Newton iteration from the receiver centroid. Timing noise is seeded, so
-the same scenario always yields the same estimate.
+Gauss–Newton iteration from the receiver centroid — the iterative
+Taylor-series estimator for hyperbolic location [@foy1976position;
+@torrieri1984statistical]. Timing noise is seeded, so the same scenario always
+yields the same estimate.
+
+Receiver positions, and hence the estimate and its error, are plain
+coordinates in an abstract scenario frame; the error reported in §3.3 is a
+Euclidean distance in those coordinate units, not a multiple of the receiver
+spacing. §3.3 gives both the raw error and its ratio to the site spacing.
 
 ## 2.5 Courier handoff scheduling
 

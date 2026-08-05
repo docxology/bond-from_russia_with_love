@@ -9,7 +9,8 @@ completes when both sides produce the right recognition signal. Those are the
 three things this package computes — luring, listening, and handing over — and
 each is expressed as an algorithm rather than as narrative.
 
-The analytical core is {{LURES_NUM_OBJECTIVES}} deterministic engines:
+The analytical core is {{LURES_NUM_ENGINES}} deterministic engines, one per
+module named in `scenario.ENGINES`:
 
 1. an **entrapment playbook** that scores lure effectiveness on a logistic
    decision surface and drives a validated trap state machine over
@@ -32,10 +33,12 @@ framework, and a coverage floor of 90% line-and-branch on `src/`. Every
 scenario constant lives in one module (`scenario.py`), so a number reported
 here cannot disagree with the code that produced it.
 
-Two of the six engines pair an exact solver with a cheap heuristic and report
+Two of these engines pair an exact solver with a cheap heuristic and report
 the difference rather than assuming it away: the knapsack allocator against a
 profit-density greedy baseline, and the courier scheduler against an exact
-subset dynamic program. Section 03 reports both gaps as measured quantities.
+subset dynamic program. Section 03 reports both gaps as measured quantities —
+including the case where the measured gap is zero and the cheap heuristic
+turns out to be optimal on that instance.
 
 ## Reader's guide
 

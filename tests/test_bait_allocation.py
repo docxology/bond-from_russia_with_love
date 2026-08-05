@@ -15,6 +15,9 @@ from from_russia_with_love.scenario import (
     ALLOC_BUDGET,
     ALLOC_LURE_STRENGTH,
     ALLOC_TARGETS,
+    GREEDY_WITNESS_BUDGET,
+    GREEDY_WITNESS_LURE_STRENGTH,
+    GREEDY_WITNESS_TARGETS,
 )
 
 
@@ -70,23 +73,39 @@ def test_allocate_deterministic() -> None:
 
 
 def test_exact_dominates_greedy_strict_separation() -> None:
-    # Capacity 5; greedily-picked B(7,c3) blocks A(10,c5); optimal is A alone.
-    targets = (
-        Target("A", susceptibility=1.0, value=10.0, lure_cost=5),
-        Target("B", susceptibility=1.0, value=7.0, lure_cost=3),
-        Target("C", susceptibility=1.0, value=6.0, lure_cost=3),
+    """The shipped witness instance must separate the solvers *strictly*.
+
+    This is the falsifiable half of the allocation claim. ``exact >= greedy``
+    is a theorem and cannot fail; a *strictly* positive gap on a fixed
+    instance can. If ``allocate_lures`` ever degraded into the greedy pick
+    (or the witness pool were edited into a tie), this assertion goes red.
+    """
+    exact = allocate_lures(
+        GREEDY_WITNESS_TARGETS, GREEDY_WITNESS_BUDGET, GREEDY_WITNESS_LURE_STRENGTH
     )
-    exact = allocate_lures(targets, 5, 0.5)
-    greedy = greedy_allocate(targets, 5, 0.5)
+    greedy = greedy_allocate(
+        GREEDY_WITNESS_TARGETS, GREEDY_WITNESS_BUDGET, GREEDY_WITNESS_LURE_STRENGTH
+    )
     assert greedy.expected_value < exact.expected_value
-    assert exact.chosen[0].target_id == "A"
-    assert exact.budget_used == 5
+    assert exact.expected_value - greedy.expected_value > 1e-9
+    assert exact.chosen[0].target_id == "W1"
+    assert exact.budget_used == GREEDY_WITNESS_BUDGET
+    # And the greedy heuristic really does make the blocking pick.
+    assert {t.target_id for t in greedy.chosen} == {"W2"}
 
 
-def test_greedy_never_beats_exact_canonical() -> None:
+def test_canonical_pool_does_not_separate_the_solvers() -> None:
+    """Pin the honest fact the manuscript now reports: the canonical pool ties.
+
+    Recorded as a measured property so that a scenario edit which *does*
+    create a separation cannot silently leave §3.1's "gap is zero" prose
+    behind. This assertion is falsifiable in both directions: it fails if the
+    canonical gap becomes non-zero, and the sibling witness test fails if the
+    exact solver stops beating greedy anywhere.
+    """
     exact = allocate_lures(ALLOC_TARGETS, ALLOC_BUDGET, ALLOC_LURE_STRENGTH)
     greedy = greedy_allocate(ALLOC_TARGETS, ALLOC_BUDGET, ALLOC_LURE_STRENGTH)
-    assert exact.expected_value >= greedy.expected_value - 1e-12
+    assert exact.expected_value == pytest.approx(greedy.expected_value, abs=1e-12)
     assert greedy.budget_used <= ALLOC_BUDGET
 
 

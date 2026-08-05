@@ -2,7 +2,7 @@
 
 {{BOND_TITLE}} — mission codename {{BOND_CODENAME}} — is a deterministic
 mission-software package in the PROJECT BOND suite. Its analytical core
-implements {{LURES_NUM_OBJECTIVES}} interlocking concepts drawn from the film
+implements {{LURES_NUM_ENGINES}} interlocking engines drawn from the film
 *From Russia with Love* (1963): an entrapment/deception playbook engine that
 evaluates bait profiles and drives trap state machines; a lure-budget
 allocation engine that solves the exact 0/1 knapsack over an analytical target

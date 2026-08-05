@@ -8,6 +8,7 @@ from pathlib import Path
 import pytest
 
 from from_russia_with_love import scenario
+from from_russia_with_love.direction_finding import min_site_spacing
 from from_russia_with_love.manuscript_variables import (
     PACKAGE_VERSION,
     _float_field,
@@ -153,6 +154,110 @@ def test_objective_count_token_tracks_the_canonical_tuple(
     assert variables["LURES_NUM_OBJECTIVES"] == len(scenario.OBJECTIVES)
 
 
+def test_engine_count_token_tracks_the_engine_tuple(
+    variables: dict[str, object],
+) -> None:
+    assert variables["LURES_NUM_ENGINES"] == len(scenario.ENGINES)
+
+
+def test_scenario_engines_match_the_modules_on_disk() -> None:
+    """Bind the engine count to the package tree, not to the objective count.
+
+    ``{{LURES_NUM_ENGINES}}`` is spent in the abstract, introduction and
+    conclusion as a count of *engines*. Previously the prose spent
+    ``{{LURES_NUM_OBJECTIVES}}`` there, with nothing forcing the two counts to
+    agree. This test is the missing binding: every name in
+    ``scenario.ENGINES`` must be a real module file, and every non-supporting
+    module in the package must be listed. Adding, renaming, or deleting an
+    engine module without updating the tuple fails here.
+    """
+    package_dir = PROJECT_ROOT / "src" / "from_russia_with_love"
+    supporting = {
+        "__init__",
+        "scenario",
+        "mission",
+        "manuscript_variables",
+    }
+    on_disk = {
+        path.stem for path in package_dir.glob("*.py") if path.stem not in supporting
+    }
+    assert on_disk, "no engine modules found — the glob is not binding anything"
+    assert set(scenario.ENGINES) == on_disk
+    assert len(scenario.ENGINES) == len(set(scenario.ENGINES))
+    for name in scenario.ENGINES:
+        assert (package_dir / f"{name}.py").is_file()
+
+
+def test_introduction_engine_list_length_matches_the_engine_count() -> None:
+    """The hand-numbered list in §1 must have exactly LURES_NUM_ENGINES items.
+
+    The prose numbers its engines by hand; without this gate the token and the
+    list can drift apart silently (which is exactly how the reused
+    objective-count token went unnoticed).
+    """
+    text = (PROJECT_ROOT / "manuscript" / "01_introduction.md").read_text(
+        encoding="utf-8"
+    )
+    numbered = re.findall(r"(?m)^(\d+)\. ", text)
+    assert numbered, "no numbered engine list found in the introduction"
+    assert len(numbered) == len(scenario.ENGINES)
+    assert numbered == [str(i + 1) for i in range(len(scenario.ENGINES))]
+
+
+def test_allocation_gap_tokens_are_measured_not_tautological(
+    variables: dict[str, object],
+) -> None:
+    """The reported gaps must be the real differences, on both instances.
+
+    The retired ``LURES_OPTIMAL_DOMINATES_GREEDY`` token could only render
+    ``False`` on a solver bug — it was green by construction. These tokens are
+    scenario properties: the canonical gap is zero (greedy ties) and the
+    witness gap is strictly positive, and either can change if a scenario or a
+    solver changes.
+    """
+    assert "LURES_OPTIMAL_DOMINATES_GREEDY" not in variables
+
+    exact = float(str(variables["LURES_ALLOC_VALUE"]))
+    greedy = float(str(variables["LURES_GREEDY_VALUE"]))
+    gap = float(str(variables["LURES_GREEDY_GAP"]))
+    assert gap == pytest.approx(exact - greedy, abs=5e-4)
+    assert gap == pytest.approx(0.0, abs=1e-9)  # canonical pool: a genuine tie
+    assert variables["LURES_GREEDY_TIES_ON_CANONICAL"] == "True"
+
+    witness_exact = float(str(variables["LURES_WITNESS_EXACT_VALUE"]))
+    witness_greedy = float(str(variables["LURES_WITNESS_GREEDY_VALUE"]))
+    witness_gap = float(str(variables["LURES_WITNESS_GAP"]))
+    assert witness_gap == pytest.approx(witness_exact - witness_greedy, abs=5e-4)
+    assert witness_gap > 0.0  # the instance that actually separates them
+    assert variables["LURES_WITNESS_TARGETS"] == len(scenario.GREEDY_WITNESS_TARGETS)
+
+
+def test_tdoa_unit_tokens_distinguish_coordinates_from_site_spacings(
+    variables: dict[str, object],
+) -> None:
+    """The raw error and the site-spacing-normalised error are distinct.
+
+    §3.3 previously labelled the raw Euclidean error "units of site spacing".
+    These two tokens now carry the two different quantities, and the spacing
+    token is computed from the receiver geometry rather than assumed.
+    """
+    spacing = float(str(variables["LURES_TDOA_SITE_SPACING"]))
+    raw = float(str(variables["LURES_TDOA_ERROR"]))
+    normalised = float(str(variables["LURES_TDOA_ERROR_SPACINGS"]))
+    assert spacing == pytest.approx(min_site_spacing(scenario.TDOA_RECEIVERS))
+    assert spacing > 1.0  # a real array, so the two units genuinely differ
+    assert normalised == pytest.approx(raw / spacing, abs=5e-5)
+    assert normalised < raw
+
+    # The geometry is actually published, not just used.
+    coords = str(variables["LURES_TDOA_RECEIVER_COORDS"])
+    for receiver in scenario.TDOA_RECEIVERS:
+        assert receiver.receiver_id in coords
+    assert str(int(scenario.TDOA_TRANSMITTER[0])) in str(
+        variables["LURES_TDOA_TRANSMITTER"]
+    )
+
+
 def test_schedule_tokens_report_the_optimality_gap(
     variables: dict[str, object],
 ) -> None:
@@ -172,9 +277,78 @@ def test_new_scenario_tokens_match_the_source_of_truth(
     assert variables["LURES_SEED"] == scenario.SEED
     assert variables["LURES_MESSAGE_BYTES"] == len(scenario.PLAINTEXT.encode("utf-8"))
     assert int(str(variables["LURES_TRAFFIC_DISTINCT"])) > 0
-    assert float(str(variables["LURES_ALLOC_VALUE"])) >= float(
-        str(variables["LURES_GREEDY_VALUE"])
+
+
+_ATTRIBUTION_SOURCES = (
+    "README.md",
+    "manuscript/02_methodology.md",
+    "manuscript/07_scope_and_related_work.md",
+    "manuscript/99_references.md",
+    "src/from_russia_with_love/direction_finding.py",
+)
+
+# Phrasings that attribute the *implemented* iterative solver to Chan & Ho.
+# Chan & Ho 1994 is a closed-form, non-iterative estimator; this package
+# implements the iterative Taylor-series / Gauss-Newton scheme (Foy 1976),
+# which Chan & Ho was published as an alternative to.
+_MISATTRIBUTION_PATTERNS = (
+    r"following the estimator of Chan",
+    r"geolocation \(Chan (&|and) Ho",
+    r"\(Chan (&|and) Ho 1994 hyperbolic location\)",
+    r"hyperbolation \(@chan1994hyperbolic\)",
+)
+
+
+def test_gauss_newton_solver_is_not_attributed_to_chan_and_ho() -> None:
+    """Guard the corrected method attribution against regression.
+
+    Positive control for this gate: re-insert any of the retired phrasings
+    (e.g. put "geolocation (Chan & Ho 1994)" back in the README row) and this
+    test fails, naming the file.
+    """
+    offenders: list[str] = []
+    for relative in _ATTRIBUTION_SOURCES:
+        text = (PROJECT_ROOT / relative).read_text(encoding="utf-8")
+        for pattern in _MISATTRIBUTION_PATTERNS:
+            if re.search(pattern, text):
+                offenders.append(f"{relative}: {pattern}")
+    assert not offenders, (
+        "the implemented solver is the iterative Taylor-series/Gauss-Newton "
+        "estimator (Foy 1976), not Chan & Ho's closed-form estimator: "
+        f"{offenders}"
     )
+
+
+def test_implemented_solver_cites_the_iterative_estimator() -> None:
+    """The corrected citation must actually be present, not merely un-wrong."""
+    bib = (PROJECT_ROOT / "manuscript" / "references.bib").read_text(encoding="utf-8")
+    assert "foy1976position" in bib
+    assert "torrieri1984statistical" in bib
+    for relative in ("manuscript/02_methodology.md", "manuscript/99_references.md"):
+        text = (PROJECT_ROOT / relative).read_text(encoding="utf-8")
+        assert "foy1976position" in text, relative
+    scope = (PROJECT_ROOT / "manuscript" / "07_scope_and_related_work.md").read_text(
+        encoding="utf-8"
+    )
+    assert "foy1976position" in scope
+    assert "does not implement it" in scope
+
+
+def test_every_cited_bib_key_exists() -> None:
+    """Citations in the manuscript must resolve to real bib entries."""
+    bib = (PROJECT_ROOT / "manuscript" / "references.bib").read_text(encoding="utf-8")
+    defined = set(re.findall(r"@\w+\{([A-Za-z0-9_]+),", bib))
+    assert defined, "no bib entries parsed — the check would be vacuous"
+    cited: set[str] = set()
+    for section in sorted(PROJECT_ROOT.glob("manuscript/[0-9]*.md")):
+        cited.update(
+            re.findall(
+                r"[\[(;]\s*@([A-Za-z][A-Za-z0-9_]*)",
+                section.read_text(encoding="utf-8"),
+            )
+        )
+    assert cited, "no citations found — the check would be vacuous"
+    assert not (cited - defined), f"undefined bib keys cited: {sorted(cited - defined)}"
 
 
 def test_all_manuscript_tokens_are_generated(variables: dict[str, object]) -> None:

@@ -18,7 +18,7 @@ algorithmic modules.
 | The honey-trap / bait operation | `entrapment_engine.py` | Bait profile generation and a bounded logistic **bite-probability surface**, plus a validated **trap state machine** (DISARMED → ARMED → BAITED → ENGAGED → SPRUNG / ABORTED) |
 | Choosing who to run the lure against | `bait_allocation.py` | Exact **0/1 knapsack** dynamic programming spending a limited lure budget across an analytical target pool, scored against a profit-density greedy baseline |
 | The intercepted encoded channel | `sigint.py` | Layered XOR keystream ciphers, additive-Gaussian-noise capture, symbol decision, deciphering, empirical SNR, traffic profiling, and energy-threshold **burst segmentation** |
-| Finding the transmitter | `direction_finding.py` | Seeded **TDOA** measurement at four intercept sites and **Gauss–Newton** least-squares geolocation (Chan & Ho 1994) |
+| Finding the transmitter | `direction_finding.py` | Seeded **TDOA** measurement at four intercept sites and **iterative Gauss–Newton (Taylor-series)** least-squares geolocation (Foy 1976; Torrieri 1984) — *not* the closed-form Chan & Ho 1994 estimator, which this package does not implement |
 | Making the meets | `courier_schedule.py` | An **earliest-deadline-first heuristic** for fitting handoff rendezvous into time windows, plus an **exact subset-DP optimum** it is scored against |
 | The recognition signal | `handoff_protocol.py` | A meet / challenge / confirm / abort state machine whose confirm code is SHA-256 of call sign + challenge; only an exact confirm reaches HANDOFF, with a red-path abort drill |
 
@@ -35,7 +35,11 @@ cryptography.
 
 Two modules solve problems where a cheap answer and a correct answer differ,
 and both report the difference rather than assuming it away. The knapsack
-allocator ships its greedy baseline alongside the exact solution. The courier
+allocator ships its greedy baseline alongside the exact solution — and on the
+canonical target pool the greedy baseline **ties** the exact solver, so the
+manuscript reports that gap as zero and measures the separation on a separate
+witness instance (`scenario.GREEDY_WITNESS_TARGETS`) instead of on a tie. The
+courier
 scheduler's greedy ordering *resembles* the classical optimal interval
 scheduling algorithm but is **not** optimal — maximising completed meets with
 release times and deadlines is NP-hard — so the package ships an exact subset
@@ -75,7 +79,8 @@ def register_gadgets() -> None: ...
 `execute()` runs all six engines against the canonical scenario and attaches
 `Provenance` (package version, seed, input hash). Success requires four
 independent conditions: exact plaintext recovery, the handoff reaching
-`handoff`, TDOA error below 0.5, and at least one scheduled meet.
+`handoff`, TDOA error below 0.5 receiver coordinate units, and at least one
+scheduled meet.
 
 **This shape is consumed across packages** by `bond-cli`, the coordinator's
 reconcile pass and the orchestrator. Deepen inside the package; do not rename

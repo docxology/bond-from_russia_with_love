@@ -294,8 +294,11 @@ class MissionProvider:  # noqa: N801 — class name is fixed by the discovery co
             outcome=outcome,
             lessons=(
                 "deterministic interception round-trips at high SNR",
-                "exact knapsack allocation dominates the greedy baseline",
-                "TDOA Gauss-Newton recovers the transmitter within a small error",
+                "the greedy allocator ties the exact knapsack on the canonical "
+                "target pool (gap 0.000); the separation is measured on the "
+                "witness pool, not asserted from the exact solver's optimality",
+                "TDOA Gauss-Newton recovers the transmitter to within a small "
+                "error in receiver coordinate units",
                 "the courier heuristic is scored against the exact schedule "
                 "optimum rather than assumed optimal",
                 "the confirm code gates handoff completion — a wrong code aborts",

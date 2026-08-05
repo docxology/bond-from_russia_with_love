@@ -7,7 +7,9 @@ Suite packages this film binds to:
 
 Models implemented by this package:
 
-- [@chan1994hyperbolic] — TDOA hyperbolic location (`direction_finding.py`)
+- [@foy1976position] — iterative Taylor-series / Gauss–Newton TDOA position
+  location, the estimator implemented in `direction_finding.py`
+- [@torrieri1984statistical] — iterative least-squares passive location
 - [@nocedal2006numerical] — Gauss–Newton non-linear least squares
 - [@martello1990knapsack] — 0/1 knapsack (`bait_allocation.py`)
 - [@bellman1957dynamic] — dynamic programming
@@ -20,6 +22,12 @@ Models implemented by this package:
 - [@nist2015fips180] — SHA-256 (`handoff_protocol.py`)
 - [@cox1958regression] — logistic binary-response model
   (`entrapment_engine.py`)
+
+Related work *not* implemented by this package:
+
+- [@chan1994hyperbolic] — closed-form two-stage weighted least-squares
+  hyperbolic location; an alternative to the iterative estimator used here,
+  and not the source of `direction_finding.py`
 
 Source material:
 

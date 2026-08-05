@@ -25,6 +25,10 @@ __all__ = [
     "CHALLENGE",
     "CIPHERS",
     "ENGAGEMENT_THRESHOLD",
+    "ENGINES",
+    "GREEDY_WITNESS_BUDGET",
+    "GREEDY_WITNESS_LURE_STRENGTH",
+    "GREEDY_WITNESS_TARGETS",
     "HANDOFF_CALL_SIGN",
     "OBJECTIVES",
     "PLAINTEXT",
@@ -55,6 +59,23 @@ OBJECTIVES: tuple[str, ...] = (
     "execute the green-pathed defector handoff protocol",
 )
 
+#: The analytical engine modules, by module name. This is a *separate* fact
+#: from :data:`OBJECTIVES` — an objective is something the mission sets out to
+#: do, an engine is a module that computes. They happen to number the same
+#: today; nothing forces that, so the manuscript counts them separately
+#: (``{{LURES_NUM_ENGINES}}`` vs ``{{LURES_NUM_OBJECTIVES}}``).
+#: ``test_scenario_engines_match_the_modules_on_disk`` binds this tuple to the
+#: package directory, so adding or deleting an engine module without updating
+#: this tuple fails the suite.
+ENGINES: tuple[str, ...] = (
+    "entrapment_engine",
+    "bait_allocation",
+    "sigint",
+    "direction_finding",
+    "courier_schedule",
+    "handoff_protocol",
+)
+
 # --- SIGINT interception -----------------------------------------------------
 PLAINTEXT = "LURES inbound relay: defector green for handoff"
 CIPHERS = (CipherLayer(key=b"VALENKA", seed=3), CipherLayer(key=b"GRANT", seed=5))
@@ -80,6 +101,20 @@ ALLOC_TARGETS: tuple[Target, ...] = (
     Target("t5", susceptibility=0.8, value=7.0, lure_cost=2),
     Target("t6", susceptibility=0.5, value=6.0, lure_cost=1),
 )
+
+#: A *witness* target pool on which the profit-density greedy heuristic is
+#: strictly worse than the exact knapsack. The canonical pool above does not
+#: separate the two solvers — greedy happens to find the optimum there — so the
+#: manuscript's separation claim is measured on this instance instead of on a
+#: tie. Greedily-picked W2 (value 7, cost 3) blocks W1 (value 10, cost 5);
+#: the optimum is W1 alone.
+GREEDY_WITNESS_TARGETS: tuple[Target, ...] = (
+    Target("W1", susceptibility=1.0, value=10.0, lure_cost=5),
+    Target("W2", susceptibility=1.0, value=7.0, lure_cost=3),
+    Target("W3", susceptibility=1.0, value=6.0, lure_cost=3),
+)
+GREEDY_WITNESS_BUDGET = 5
+GREEDY_WITNESS_LURE_STRENGTH = 0.5
 
 # --- SIGINT direction finding (TDOA) ----------------------------------------
 #: Four fixed intercept sites at the corners of a 20 x 20 grid.

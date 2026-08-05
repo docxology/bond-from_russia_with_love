@@ -7,9 +7,27 @@ solver estimates the transmitter position by minimising
 
     f(x) = sum_ij ( (|x - r_i| - |x - r_j|) / c - tau_ij )^2
 
-over receiver pairs ``(i, j)`` with measured time differences ``tau_ij``
-(Chan & Ho 1994 hyperbolic location). Measurement noise is seeded, so the
-same scenario always yields the same estimate.
+over receiver pairs ``(i, j)`` with measured time differences ``tau_ij``.
+Measurement noise is seeded, so the same scenario always yields the same
+estimate.
+
+Attribution
+-----------
+The solver implemented here is the **iterative Taylor-series / Gauss–Newton**
+estimator for hyperbolic position location (Foy 1976; Torrieri 1984), i.e. the
+standard non-linear least-squares iteration applied to the TDOA residuals.
+It is *not* the Chan & Ho (1994) estimator: that method is a **closed-form,
+non-iterative** two-stage weighted least-squares solution, published precisely
+as an alternative to the iterative scheme used here. Chan & Ho is cited in the
+manuscript as related work, not as the source of this implementation.
+
+Units
+-----
+Receiver and transmitter positions are plain 2-D coordinates in an abstract
+scenario coordinate system; ``speed`` converts distance to time in those same
+units. :func:`localization_error` therefore returns a distance in **receiver
+coordinate units**, not in multiples of the receiver spacing. Use
+:func:`min_site_spacing` to convert an error to units of site spacing.
 
 Concepts
 --------
@@ -17,8 +35,10 @@ Concepts
 * :func:`tdoa_measurements` — true range-difference TDOAs plus seeded noise.
 * :func:`estimate_position` — Gauss–Newton minimisation from a centroid
   initial guess, returning the estimate and a convergence flag.
-* :func:`localization_error` — Euclidean error of an estimate (determinism
-  check target: ~0 at zero noise).
+* :func:`localization_error` — Euclidean error of an estimate, in receiver
+  coordinate units (determinism check target: ~0 at zero noise).
+* :func:`min_site_spacing` — the smallest distance between two intercept
+  sites; the scale a localisation error is meaningfully compared against.
 """
 
 from __future__ import annotations
@@ -34,6 +54,7 @@ __all__ = [
     "TdoaEstimate",
     "estimate_position",
     "localization_error",
+    "min_site_spacing",
     "tdoa_measurements",
 ]
 
@@ -175,8 +196,31 @@ def estimate_position(
 
 
 def localization_error(estimate: Position, truth: Position) -> float:
-    """Euclidean distance between an estimate and the true position."""
+    """Euclidean distance between an estimate and the true position.
+
+    The result is in **receiver coordinate units** — the same units the
+    :class:`Receiver` positions are expressed in. It is *not* normalised by
+    the receiver spacing; divide by :func:`min_site_spacing` for that.
+    """
     return math.hypot(estimate[0] - truth[0], estimate[1] - truth[1])
+
+
+def min_site_spacing(receivers: tuple[Receiver, ...]) -> float:
+    """Smallest distance between any two intercept sites (coordinate units).
+
+    This is the natural length scale of a receiver array: a localisation error
+    is only interpretable relative to how far apart the sites actually are.
+    """
+    if len(receivers) < 2:
+        raise ValueError("at least two receivers are required for a spacing")
+    return min(
+        math.hypot(
+            receivers[i].position[0] - receivers[j].position[0],
+            receivers[i].position[1] - receivers[j].position[1],
+        )
+        for i in range(len(receivers))
+        for j in range(i + 1, len(receivers))
+    )
 
 
 def _centroid(receivers: tuple[Receiver, ...]) -> Position:

@@ -14,14 +14,34 @@ claims:
     source: src/from_russia_with_love/sigint.py
     token: LURES_RECOVERED_EXACT
     provenance: computed, 80 dB clean channel, seed 11
+  - id: allocation-greedy-gap-canonical
+    source: src/from_russia_with_love/bait_allocation.py
+    token: LURES_GREEDY_GAP
+    provenance: exact minus greedy expected value on the canonical target
+      pool; measured, and measured to be zero (greedy is optimal there). The
+      inequality exact >= greedy is NOT reported as a result because it holds
+      by construction and cannot fail on any scenario.
+  - id: allocation-greedy-gap-witness
+    source: src/from_russia_with_love/bait_allocation.py
+    token: LURES_WITNESS_GAP
+    provenance: exact minus greedy expected value on
+      scenario.GREEDY_WITNESS_TARGETS; strictly positive, and the only
+      instance in the package that separates the two solvers
   - id: tdoa-error
     source: src/from_russia_with_love/direction_finding.py
     token: LURES_TDOA_ERROR
-    provenance: Gauss-Newton TDOA estimate error, seeded timing noise
+    provenance: Gauss-Newton TDOA estimate error, seeded timing noise;
+      Euclidean distance in RECEIVER COORDINATE UNITS (not site spacings)
+  - id: tdoa-error-site-spacings
+    source: src/from_russia_with_love/direction_finding.py
+    token: LURES_TDOA_ERROR_SPACINGS
+    provenance: the same error divided by min_site_spacing(TDOA_RECEIVERS);
+      this is the value that is genuinely "in units of site spacing"
   - id: schedule-count
     source: src/from_russia_with_love/courier_schedule.py
     token: LURES_SCHEDULE_COUNT
-    provenance: earliest-finish-first windowed scheduling, seed-free
+    provenance: earliest-deadline-first windowed scheduling HEURISTIC (not
+      optimal; scored against max_completed_handoffs), seed-free
   - id: handoff-state
     source: src/from_russia_with_love/handoff_protocol.py
     token: LURES_HANDOFF_STATE

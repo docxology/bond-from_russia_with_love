@@ -48,10 +48,19 @@ specifically to prove a gate is live:
 - **`test_exact_solver_matches_independent_brute_force`** checks the subset DP
   against an exhaustive permutation search written a deliberately different
   way, so a shared bug cannot make both agree.
-- **`test_exact_dominates_greedy_strict_separation`** uses a hand-built
-  knapsack instance where greedy provably loses. On the *canonical* scenario
-  the two happen to tie, so the canonical test only asserts `exact >= greedy`;
-  the strict separation is claimed only where it is true.
+- **`test_exact_dominates_greedy_strict_separation`** runs the shipped witness
+  knapsack instance (`scenario.GREEDY_WITNESS_TARGETS`) where greedy provably
+  loses, and asserts a *strictly* positive gap. This is the falsifiable half of
+  the allocation claim: `exact >= greedy` is a theorem about the exact solver
+  and cannot fail, but a strict separation on a fixed instance can — cripple
+  `allocate_lures` into the greedy pick and this test goes red.
+- **`test_canonical_pool_does_not_separate_the_solvers`** pins the opposite
+  fact: on the *canonical* target pool greedy ties the exact knapsack exactly,
+  so that instance demonstrates nothing about the exact solver's necessity.
+  The manuscript reports that tie (gap `0.000`) instead of reporting the
+  unfalsifiable inequality. Both tests are two-sided — changing the canonical
+  pool so a separation appears fails the first; removing the separation from
+  the witness pool fails the second.
 - **`test_schedule_takes_windows_in_deadline_order`** guards its own
   non-triviality: it asserts the canonical schedule is neither empty nor
   complete, so the ordering check cannot pass vacuously.

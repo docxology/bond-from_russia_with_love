@@ -38,10 +38,16 @@ model of anything, and its parameters are not calibrated against data.
   $1 \mid r_j, d_j \mid \sum U_j$, is strongly NP-hard
   [@garey1979computers], which is why the package pairs a heuristic with an
   exact subset dynamic program rather than claiming optimality.
-- **Localisation** — hyperbolic (TDOA) position estimation, following the
-  estimator of Chan & Ho [@chan1994hyperbolic]; the Gauss–Newton iteration
-  used here is the standard non-linear least-squares method
-  [@nocedal2006numerical].
+- **Localisation** — hyperbolic (TDOA) position estimation. The solver
+  implemented in `direction_finding.py` is the **iterative Taylor-series /
+  Gauss–Newton** estimator [@foy1976position; @torrieri1984statistical],
+  i.e. the standard non-linear least-squares iteration
+  [@nocedal2006numerical] applied to the pair TDOA residuals from a receiver
+  centroid start. It is *not* the Chan & Ho estimator
+  [@chan1994hyperbolic]: that is a **closed-form, non-iterative** two-stage
+  weighted least-squares solution, published as an alternative to exactly the
+  iterative scheme used here. Chan & Ho is listed as related work, and this
+  package does not implement it.
 - **Channel and cipher models** — the additive white Gaussian noise channel
   and symbol-decision model follow standard digital-communications treatment
   [@proakis2008digital]; the keystream construction is an elementary

@@ -31,6 +31,7 @@ from from_russia_with_love.courier_schedule import (
 from from_russia_with_love.direction_finding import (
     estimate_position,
     localization_error,
+    min_site_spacing,
     tdoa_measurements,
 )
 from from_russia_with_love.entrapment_engine import (
@@ -157,6 +158,20 @@ def generate_variables(
         scenario.ALLOC_BUDGET,
         scenario.ALLOC_LURE_STRENGTH,
     )
+    # The canonical pool does not separate the two solvers, so the separation
+    # is measured on an explicit witness instance instead of on a tie.
+    witness_exact = allocate_lures(
+        scenario.GREEDY_WITNESS_TARGETS,
+        scenario.GREEDY_WITNESS_BUDGET,
+        scenario.GREEDY_WITNESS_LURE_STRENGTH,
+    )
+    witness_greedy = greedy_allocate(
+        scenario.GREEDY_WITNESS_TARGETS,
+        scenario.GREEDY_WITNESS_BUDGET,
+        scenario.GREEDY_WITNESS_LURE_STRENGTH,
+    )
+    canonical_gap = allocation.expected_value - greedy.expected_value
+    witness_gap = witness_exact.expected_value - witness_greedy.expected_value
 
     # SIGINT + burst segmentation.
     channel = intercept_channel(
@@ -181,6 +196,7 @@ def generate_variables(
         scenario.TDOA_RECEIVERS, pairs, tdoa, speed=scenario.TDOA_SPEED
     )
     tdoa_error = localization_error(estimate.position, scenario.TDOA_TRANSMITTER)
+    site_spacing = min_site_spacing(scenario.TDOA_RECEIVERS)
 
     # Courier schedule (heuristic) scored against the exact optimum + handoff.
     schedule = schedule_handoffs(
@@ -214,6 +230,7 @@ def generate_variables(
         "BOND_SUBTITLE": str(paper.get("subtitle", "Special-Agent Mission Software")),
         "CONFIG_KEYWORDS": ", ".join(str(k) for k in keywords),
         "LURES_NUM_OBJECTIVES": len(scenario.OBJECTIVES),
+        "LURES_NUM_ENGINES": len(scenario.ENGINES),
         "LURES_NUM_BAIT_PROFILES": len(scenario.BAIT_PROFILE_IDS),
         "LURES_SEED": scenario.SEED,
         "LURES_ENGAGEMENT_THRESHOLD": f"{scenario.ENGAGEMENT_THRESHOLD:.2f}",
@@ -227,9 +244,18 @@ def generate_variables(
         "LURES_ALLOC_VALUE": f"{allocation.expected_value:.3f}",
         "LURES_GREEDY_VALUE": f"{greedy.expected_value:.3f}",
         "LURES_ALLOC_UTILIZATION": f"{allocation_utilization:.0f}",
-        "LURES_OPTIMAL_DOMINATES_GREEDY": str(
-            allocation.expected_value >= greedy.expected_value - 1e-12
-        ),
+        # Measured separations, not the theorem. ``exact >= greedy`` holds by
+        # construction whenever the exact solver is correct, so reporting it
+        # as a result would be green by construction. What is *not* determined
+        # in advance is how large the gap is on a given instance: zero on the
+        # canonical pool (greedy ties), strictly positive on the witness pool.
+        "LURES_GREEDY_GAP": f"{canonical_gap:.3f}",
+        "LURES_GREEDY_TIES_ON_CANONICAL": str(abs(canonical_gap) <= 1e-12),
+        "LURES_WITNESS_TARGETS": len(scenario.GREEDY_WITNESS_TARGETS),
+        "LURES_WITNESS_BUDGET": scenario.GREEDY_WITNESS_BUDGET,
+        "LURES_WITNESS_EXACT_VALUE": f"{witness_exact.expected_value:.3f}",
+        "LURES_WITNESS_GREEDY_VALUE": f"{witness_greedy.expected_value:.3f}",
+        "LURES_WITNESS_GAP": f"{witness_gap:.3f}",
         "LURES_MESSAGE_BYTES": len(scenario.PLAINTEXT.encode("utf-8")),
         "LURES_CIPHER_LAYERS": len(scenario.CIPHERS),
         "LURES_SNR_DB": f"{scenario.SNR_DB:.1f}",
@@ -239,7 +265,19 @@ def generate_variables(
         "LURES_BURST_COUNT": len(bursts),
         "LURES_NUM_RECEIVERS": len(scenario.TDOA_RECEIVERS),
         "LURES_TDOA_NOISE_STD": f"{scenario.TDOA_NOISE_STD:.2f}",
+        "LURES_TDOA_RECEIVER_COORDS": "; ".join(
+            f"{r.receiver_id} ({r.position[0]:.0f}, {r.position[1]:.0f})"
+            for r in scenario.TDOA_RECEIVERS
+        ),
+        "LURES_TDOA_TRANSMITTER": (
+            f"({scenario.TDOA_TRANSMITTER[0]:.0f}, {scenario.TDOA_TRANSMITTER[1]:.0f})"
+        ),
+        "LURES_TDOA_SITE_SPACING": f"{site_spacing:.1f}",
+        # Error in raw receiver coordinate units, and the same error expressed
+        # as a fraction of the site spacing. These are different numbers; the
+        # manuscript previously labelled the first one with the second's unit.
         "LURES_TDOA_ERROR": f"{tdoa_error:.3f}",
+        "LURES_TDOA_ERROR_SPACINGS": f"{tdoa_error / site_spacing:.4f}",
         "LURES_TDOA_ITERATIONS": estimate.iterations,
         "LURES_TDOA_CONVERGED": str(bool(estimate.converged)),
         "LURES_SCHEDULE_COUNT": schedule.scheduled_count,

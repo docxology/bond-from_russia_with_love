@@ -8,6 +8,7 @@ from from_russia_with_love.direction_finding import (
     Receiver,
     estimate_position,
     localization_error,
+    min_site_spacing,
     tdoa_measurements,
 )
 from from_russia_with_love.scenario import (
@@ -138,3 +139,51 @@ def test_canonical_error_below_threshold() -> None:
     )
     estimate = estimate_position(TDOA_RECEIVERS, pairs, tdoa, speed=TDOA_SPEED)
     assert localization_error(estimate.position, TDOA_TRANSMITTER) < 0.5
+
+
+def test_min_site_spacing_is_the_smallest_pairwise_distance() -> None:
+    """A site spacing is a real distance, computed from the real geometry."""
+    receivers = (
+        Receiver("A", (0.0, 0.0)),
+        Receiver("B", (3.0, 4.0)),  # 5.0 from A
+        Receiver("C", (0.0, 2.0)),  # 2.0 from A -> the minimum
+    )
+    assert min_site_spacing(receivers) == pytest.approx(2.0)
+
+
+def test_min_site_spacing_requires_two_sites() -> None:
+    with pytest.raises(ValueError, match="at least two receivers"):
+        min_site_spacing((Receiver("A", (0.0, 0.0)),))
+
+
+def test_canonical_site_spacing_matches_the_declared_grid() -> None:
+    """The scenario's four corners span 20 units, so the spacing is 20.
+
+    Guards the unit claim in §3.3 and §5: the localisation error is reported
+    in coordinate units, and this is the divisor that converts it to site
+    spacings. If the receiver array is moved, this number moves with it.
+    """
+    assert min_site_spacing(TDOA_RECEIVERS) == pytest.approx(20.0)
+
+
+def test_localisation_error_is_not_in_site_spacings() -> None:
+    """Positive control for the unit distinction the manuscript now draws.
+
+    The raw error and the error-in-site-spacings are different numbers by a
+    factor of the spacing. Asserting the factor makes the §3.3 claim
+    falsifiable: if someone re-labels the raw error as "site spacings", this
+    test still shows the two quantities differ by 20x.
+    """
+    pairs, tdoa = tdoa_measurements(
+        TDOA_RECEIVERS,
+        TDOA_TRANSMITTER,
+        speed=TDOA_SPEED,
+        noise_std=TDOA_NOISE_STD,
+        seed=11,
+    )
+    estimate = estimate_position(TDOA_RECEIVERS, pairs, tdoa, speed=TDOA_SPEED)
+    raw = localization_error(estimate.position, TDOA_TRANSMITTER)
+    spacing = min_site_spacing(TDOA_RECEIVERS)
+    assert raw > 0.0
+    assert raw / spacing == pytest.approx(raw / 20.0)
+    assert raw != pytest.approx(raw / spacing)  # the two are not the same number

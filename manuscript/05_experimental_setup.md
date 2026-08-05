@@ -19,6 +19,7 @@ quantitative token below is computed by running the engines.
 | Parameter | Value |
 |---|---|
 | Objectives | {{LURES_NUM_OBJECTIVES}} |
+| Analytical engines | {{LURES_NUM_ENGINES}} |
 | Fixed seed | {{LURES_SEED}} |
 | Bait profiles | {{LURES_NUM_BAIT_PROFILES}} |
 | Engagement threshold | {{LURES_ENGAGEMENT_THRESHOLD}} |
@@ -29,8 +30,17 @@ quantitative token below is computed by running the engines.
 | Cipher layers | {{LURES_CIPHER_LAYERS}} |
 | Requested channel SNR | {{LURES_SNR_DB}} dB |
 | TDOA intercept sites | {{LURES_NUM_RECEIVERS}} |
+| TDOA receiver coordinates | {{LURES_TDOA_RECEIVER_COORDS}} |
+| TDOA true transmitter | {{LURES_TDOA_TRANSMITTER}} |
+| TDOA minimum site spacing (coordinate units) | {{LURES_TDOA_SITE_SPACING}} |
 | TDOA timing noise (s) | {{LURES_TDOA_NOISE_STD}} |
 | Candidate rendezvous | {{LURES_SCHEDULE_TOTAL}} |
+| Greedy-witness targets / budget | {{LURES_WITNESS_TARGETS}} / {{LURES_WITNESS_BUDGET}} |
+
+Receiver and transmitter positions are dimensionless coordinates in the
+scenario frame, and `TDOA_SPEED` is 1.0, so distance and time share units. The
+localisation error reported in §3.3 is therefore in these coordinate units;
+the site spacing row is what converts it to units of site spacing.
 
 ## Software Environment
 

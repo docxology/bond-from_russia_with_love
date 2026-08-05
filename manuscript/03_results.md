@@ -18,8 +18,27 @@ spent **{{LURES_ALLOC_CHOSEN}} of {{LURES_ALLOC_BUDGET}} budget units**
 (utilization **{{LURES_ALLOC_UTILIZATION}}%**) across
 **{{LURES_ALLOC_COUNT}} targets**, for an expected engagement value of
 **{{LURES_ALLOC_VALUE}}**. The profit-density greedy baseline reached
-**{{LURES_GREEDY_VALUE}}** on the same instance, and the exact solution
-dominates it: **{{LURES_OPTIMAL_DOMINATES_GREEDY}}**.
+**{{LURES_GREEDY_VALUE}}** on the same instance — a measured gap of
+**{{LURES_GREEDY_GAP}}**.
+
+That gap is zero: on the canonical target pool the cheap heuristic finds the
+optimum, and this instance therefore **separates the two solvers not at all**
+(greedy ties: **{{LURES_GREEDY_TIES_ON_CANONICAL}}**). We state that plainly
+rather than reporting the inequality $\text{exact} \ge \text{greedy}$ as a
+finding: that inequality is a theorem about the exact solver, not a property
+of this scenario, and it could only come out false if the knapsack
+implementation were broken. Reporting it as a result would be green by
+construction.
+
+The separation is instead measured where it exists. On the witness pool of
+§2.2 — **{{LURES_WITNESS_TARGETS}}** targets under a budget of
+**{{LURES_WITNESS_BUDGET}}**, deliberately constructed so that a
+profit-density pick blocks the optimal one — the exact allocation reaches
+**{{LURES_WITNESS_EXACT_VALUE}}** against the greedy
+**{{LURES_WITNESS_GREEDY_VALUE}}**, a strictly positive gap of
+**{{LURES_WITNESS_GAP}}**. That is the falsifiable claim: were the exact
+solver merely greedy in disguise, this gap would collapse to zero, and the
+test suite pins it.
 
 ![LURE surface: bite probability vs. lure strength and target susceptibility.](output/figures/lure_surface.png){#fig:lure_surface}
 
@@ -36,11 +55,21 @@ burst(s)**.
 
 ## 3.3 Direction finding
 
-With **{{LURES_NUM_RECEIVERS}}** intercept sites and seeded timing noise of
-standard deviation **{{LURES_TDOA_NOISE_STD}}**, the TDOA Gauss–Newton
-estimator converged (**{{LURES_TDOA_CONVERGED}}**) in
-**{{LURES_TDOA_ITERATIONS}}** iterations to a transmitter localisation error
-of **{{LURES_TDOA_ERROR}}** (units of site spacing).
+With **{{LURES_NUM_RECEIVERS}}** intercept sites at
+**{{LURES_TDOA_RECEIVER_COORDS}}**, a true transmitter at
+**{{LURES_TDOA_TRANSMITTER}}**, and seeded timing noise of standard deviation
+**{{LURES_TDOA_NOISE_STD}}**, the TDOA Gauss–Newton estimator converged
+(**{{LURES_TDOA_CONVERGED}}**) in **{{LURES_TDOA_ITERATIONS}}** iterations to a
+transmitter localisation error of **{{LURES_TDOA_ERROR}} receiver coordinate
+units**.
+
+The units matter. `localization_error()` returns a raw Euclidean distance in
+the coordinate system the receivers are declared in — it is not normalised by
+the array geometry. The smallest distance between two intercept sites is
+**{{LURES_TDOA_SITE_SPACING}}** coordinate units, so the same error expressed
+as a fraction of the site spacing is **{{LURES_TDOA_ERROR_SPACINGS}}**. Both
+numbers are generated from the same computation; only the second one is "in
+units of site spacing".
 
 ![TDOA geometry: intercept sites, true transmitter, and estimate.](output/figures/tdoa_geometry.png){#fig:tdoa_geometry}
 

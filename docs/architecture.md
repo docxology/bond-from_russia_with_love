@@ -30,7 +30,16 @@ Holds every constant the mission executes: the seed (`SEED = 11`), the
 plaintext and cipher stack, bait profile ids, the engagement threshold, the
 allocation target pool and budget, the four TDOA receiver positions and the
 true transmitter, the rendezvous windows, the handoff call sign and challenge,
-and `OBJECTIVES` (the mission's declared objectives, verbatim).
+the greedy-witness target pool, `OBJECTIVES` (the mission's declared
+objectives, verbatim), and `ENGINES` (the analytical engine module names).
+
+`OBJECTIVES` and `ENGINES` are deliberately separate tuples counting
+different things — an objective is something the mission sets out to do, an
+engine is a module that computes. They are the same length today and nothing
+forces that, so the manuscript spends `{{LURES_NUM_OBJECTIVES}}` and
+`{{LURES_NUM_ENGINES}}` separately and
+`test_scenario_engines_match_the_modules_on_disk` binds `ENGINES` to the
+package directory.
 
 Nothing else in the package defines a mission constant. `mission.py`,
 `manuscript_variables.py`, and both figure generators import from here, so a
@@ -89,7 +98,14 @@ section.
   tolerance. Returns position, convergence flag, iteration count and residual
   norm; a singular normal-equation solve breaks out with `converged=False`
   rather than raising.
-* `localization_error` — Euclidean error against the truth.
+* `localization_error` — Euclidean error against the truth, in **receiver
+  coordinate units** (not normalised by the array geometry).
+* `min_site_spacing` — smallest distance between two intercept sites; the
+  divisor that converts a localisation error into units of site spacing.
+
+The solver is the iterative Taylor-series / Gauss–Newton estimator (Foy
+1976; Torrieri 1984), not the closed-form Chan & Ho (1994) estimator, which
+this package does not implement.
 
 ### `courier_schedule.py` — handoff rendezvous planning
 
