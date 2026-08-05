@@ -20,7 +20,10 @@ before touching `tests/`.
 - No mock framework — no `MagicMock`, `mocker.patch` or `unittest.mock`. Real
   data and real computation only.
 - Coverage floor: 90% line-and-branch on `src/`.
-- Deterministic: fixed seeds, no untracked RNG, no wall-clock in tracked files.
+- Deterministic: fixed seeds, no untracked RNG, and **no wall-clock read anywhere** — not in tracked files and not in generated `output/` either, so
+  regeneration is byte-for-byte identical
+  (`tests/test_regeneration_determinism.py` runs the generator twice and
+  compares bytes; it injects no clock).
 - Thin `scripts/`; business logic in `src/`.
 - `ruff check`, `ruff format --check` and `mypy` clean on `src/` and `scripts/`.
 - Manuscript metrics arrive as generated tokens from

@@ -7,7 +7,7 @@ interception, TDOA Gauss–Newton direction finding, courier-handoff scheduling,
 defector handoff protocol) behind the frozen `bond_api` `MissionProvider`
 adapter, plus a token-hydrated manuscript. **Verified state, measured
 2026-08-05 in this tree:** `uv run pytest tests/ --cov=src --cov-fail-under=90`
-→ **140 passed, 0 failed, 0 skipped, 99.25% line-and-branch coverage on
+→ **146 passed, 0 failed, 0 skipped, 99.25% line-and-branch coverage on
 `src/`** (Python 3.14.6, numpy 2.5.1, darwin); `ruff check`, `ruff format
 --check` (27 files), `mypy src/ scripts/` (16 files) and
 `scripts/00_preflight.py` all clean; `rg -n "template[_]code_project" .` zero
@@ -29,8 +29,8 @@ that must agree:
 
 | Literal | Sites | Why it matters |
 |---|---|---|
-| `"honey-trap-alpha"` | `src/from_russia_with_love/mission.py:153`, `:195`; `src/from_russia_with_love/manuscript_variables.py:147` | Equals `scenario.BAIT_PROFILE_IDS[0]` today; nothing binds them, so renaming the profile silently splits the executed lure from the published one |
-| Burst threshold factor `0.5` and `min_gap=1` | `mission.py:218-219`; `manuscript_variables.py:184-185` | These two unnamed numbers alone determine the published `{{LURES_BURST_COUNT}}` (§3.2) |
+| `"honey-trap-alpha"` | `src/from_russia_with_love/mission.py:153`, `:195`; `src/from_russia_with_love/manuscript_variables.py:174` | Equals `scenario.BAIT_PROFILE_IDS[0]` today; nothing binds them, so renaming the profile silently splits the executed lure from the published one |
+| Burst threshold factor `0.5` and `min_gap=1` | `mission.py:218-219`; `manuscript_variables.py:211-212` | These two unnamed numbers alone determine the published `{{LURES_BURST_COUNT}}` (§3.2) |
 | Success thresholds `tdoa_error < 0.5`, `scheduled_count >= 1` | `mission.py:277-278` | README, `docs/architecture.md` and `experiment_plan.yaml` all restate them in prose |
 | `input_hash="lures-mission-input-v2"` | `mission.py:286` | Hand-versioned provenance string; nothing recomputes or checks it |
 
@@ -239,7 +239,7 @@ what this session actually observed.
 
 ```bash
 uv sync --extra dev                                    # wires the local bond-api path dependency
-uv run pytest tests/ --cov=src --cov-fail-under=90     # 140 passed, 99.25% coverage
+uv run pytest tests/ --cov=src --cov-fail-under=90     # 146 passed, 99.25% coverage
 uv run ruff check src/ scripts/ tests/                 # All checks passed!
 uv run ruff format --check src/ scripts/ tests/        # 27 files already formatted
 uv run mypy src/ scripts/                              # no issues in 16 source files

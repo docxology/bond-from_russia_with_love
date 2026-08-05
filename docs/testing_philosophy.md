@@ -27,9 +27,15 @@ than assumed:
 Tests assert **byte-identical** artifacts (`test_plot_lure_surface_deterministic`
 and `test_plot_tdoa_geometry_deterministic` compare raw PNG bytes across two
 renders) and **exact round-trips** (`encipher` → `decipher`,
-`bytes_to_symbols` → `symbols_to_bytes`). `generate_variables` takes an
-injectable `now`, so token maps can be compared for equality without the clock
-defeating the comparison.
+`bytes_to_symbols` → `symbols_to_bytes`).
+`test_regeneration_is_byte_identical` extends the same standard to the whole
+artifact set: it runs `scripts/z_generate_manuscript_variables.py` twice as a
+subprocess and compares the SHA-256 of every persisted file. It deliberately
+injects nothing — an earlier version of this suite passed a fixed `now` into
+`generate_variables`, which made the token map comparable while the real
+generator still stamped a wall-clock value into the manuscript. Injecting the
+clock is how that breach survived, so the replacement test uses the real entry
+point.
 
 ## A test must be able to fail
 

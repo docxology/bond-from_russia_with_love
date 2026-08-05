@@ -50,4 +50,4 @@ the site spacing row is what converts it to units of site spacing.
 | Platform | {{PLATFORM}} |
 | numpy | {{NUMPY_VERSION}} |
 | Package version | {{BOND_VERSION}} |
-| Generated | {{GENERATION_TIMESTAMP}} |
+| Manuscript date (`config.yaml` `paper.date`) | {{MANUSCRIPT_DATE}} |

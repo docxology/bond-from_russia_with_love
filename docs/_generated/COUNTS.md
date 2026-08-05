@@ -5,13 +5,13 @@ actual run of the commands in the last column.
 
 | Metric | Value | Measured by |
 |---|---|---|
-| Tests passing | 140 | `uv run pytest tests/ --cov=src --cov-fail-under=90` |
+| Tests passing | 146 | `uv run pytest tests/ --cov=src --cov-fail-under=90` |
 | Tests failing / skipped | 0 / 0 | same run |
 | src line+branch coverage | 99.25% | same run |
 | Coverage gate | >=90% (`--cov-fail-under=90`) | pyproject `fail_under` |
 | Uncovered statements in `src/` | 3 (+4 partial branches) | same run |
 | Lint | clean | `uv run ruff check src/ scripts/ tests/` |
-| Format | clean (27 files) | `uv run ruff format --check src/ scripts/ tests/` |
+| Format | clean (28 files) | `uv run ruff format --check src/ scripts/ tests/` |
 | Types | clean (16 source files) | `uv run mypy src/ scripts/` |
 | Mock framework usage | none | no `MagicMock` / `mocker.patch` / `unittest.mock` in tree |
 | Legacy lineage strings (`template[_]code_project`) | 0 | `rg -n "template[_]code_project" .` |

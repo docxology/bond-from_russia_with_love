@@ -11,9 +11,21 @@ protocol use no randomness at all (SHA-256 only). The mission seed is
 `src/from_russia_with_love/scenario.py` and mirrored into
 `manuscript/config.yaml` under a build-time equality check.
 
-No tracked artifact depends on wall-clock time. `GENERATION_TIMESTAMP` is the
-only clock-derived token and is overridable, which is how the token tests
-assert byte-for-byte reproducibility.
+Nothing in the package reads the wall clock. There is no clock-derived token:
+the date row in §5 is `{{MANUSCRIPT_DATE}}`, taken verbatim from the committed
+`paper.date` field of `manuscript/config.yaml`. Every other value is a function
+of `scenario.py`, the engines, and the interpreter/library versions. Two
+regenerations on the same tree therefore produce byte-identical artifacts —
+the token map and both figures alike.
+
+That claim is bound by a test rather than asserted: `test_regeneration_is_byte_identical`
+in `tests/test_regeneration_determinism.py` runs the real generator script twice
+as a subprocess and compares the SHA-256 of every persisted artifact. It does
+*not* inject a fixed clock — injecting one is precisely how a wall-clock
+dependency could hide behind a green suite, and this package shipped that bug
+once. `test_no_wall_clock_read_under_src` is the positive control: it
+fails if any module under `src/` calls `datetime.now`, `time.time`, or
+`date.today`.
 
 ## Regenerating everything
 

@@ -187,9 +187,12 @@ the class name, the five stage signatures, the `film` attribute, or the
 Seeds are module-level constants in `scenario.py` (`SEED = 11`,
 `TDOA_SEED = 11`). SIGINT capture, lure generation and TDOA timing noise all
 use seeded RNGs; the knapsack, the scheduler and the handoff protocol use no
-randomness at all. No tracked file reads the wall clock — the only
-clock-derived token is `GENERATION_TIMESTAMP`, and it is injectable so tests
-can assert byte-identical output. `output/` is regenerable and git-ignored.
+randomness at all. Nothing reads the wall clock — there is no clock-derived
+token; the manuscript date comes from the committed `paper.date` config field.
+Regeneration is byte-for-byte identical, and
+`tests/test_regeneration_determinism.py` proves it by running the generator
+twice and comparing persisted bytes (no injected clock). `output/` is
+regenerable and git-ignored.
 
 ## Deciding where new code goes
 

@@ -11,6 +11,14 @@ code. All scenario constants come from :mod:`~from_russia_with_love.scenario`
 The strict contract: every ``{{TOKEN}}`` appearing in ``manuscript/[0-9]*.md``
 must be present in the dict returned by :func:`generate_variables`. The live
 cross-reference test enforces this.
+
+Second strict contract: **nothing here reads the wall clock.** Every value is a
+function of committed inputs only (``manuscript/config.yaml``, ``scenario.py``,
+the engines, and the interpreter/library versions), so regenerating the token
+map produces byte-identical output. The manuscript's date row comes from the
+committed ``paper.date`` config field, not from ``datetime.now()``.
+``tests/test_regeneration_determinism.py`` runs the real generator twice and
+compares the persisted bytes, so this contract cannot quietly lapse.
 """
 
 from __future__ import annotations
@@ -45,6 +53,7 @@ __all__ = [
     "PACKAGE_VERSION",
     "load_mission_config",
     "generate_variables",
+    "manuscript_date",
     "validate_mission_config",
 ]
 
@@ -72,6 +81,25 @@ def _float_field(channel: dict[str, object], field: str) -> float:
     if not isinstance(value, (int, float)):
         raise TypeError(f"intercept {field!r} must be numeric")
     return float(value)
+
+
+def manuscript_date(paper: dict[str, object]) -> str:
+    """Return the committed manuscript date from the ``paper`` config block.
+
+    This is deliberately *not* a wall-clock stamp. ``{{MANUSCRIPT_DATE}}`` is
+    rendered into the manuscript, and a clock-derived value there would make
+    every regeneration produce different bytes — which would falsify the
+    byte-for-byte reproducibility claim in §6. The date is therefore a
+    committed input: edit ``manuscript/config.yaml`` to change it.
+    """
+    value = paper.get("date")
+    if value is None or str(value).strip() == "":
+        raise ValueError(
+            "manuscript/config.yaml must declare paper.date (YYYY-MM-DD). The "
+            "manuscript date is a committed input, not a wall-clock stamp, so "
+            "regeneration stays byte-for-byte identical."
+        )
+    return str(value).strip()
 
 
 def _traffic_field(channel: dict[str, object], field: str) -> int:
@@ -125,15 +153,14 @@ def generate_variables(
     project_root: Path,
     *,
     allow_draft: bool = False,
-    now: str | None = None,
 ) -> dict[str, object]:
     """Compute the full {TOKEN: value} mapping for the manuscript.
 
-    ``now`` overrides the generation timestamp for deterministic tests; when
-    omitted the current UTC time (ISO-8601, ``Z`` suffix) is used.
-    ``allow_draft`` is accepted for interface compatibility with the strict
-    dry-run contract but LURES always computes live results (no draft
-    fallbacks).
+    Every value is a function of committed inputs only — there is no clock
+    input and no clock read, so two calls on the same tree return equal maps
+    and the persisted JSON is byte-identical. ``allow_draft`` is accepted for
+    interface compatibility with the strict dry-run contract but LURES always
+    computes live results (no draft fallbacks).
     """
     del allow_draft  # LURES computes live results; kept for signature parity
     config = load_mission_config(project_root)
@@ -213,15 +240,6 @@ def generate_variables(
         call_sign=scenario.HANDOFF_CALL_SIGN, challenge=scenario.CHALLENGE
     ).run_red_path()
 
-    if now is None:  # pragma: no cover - wall-clock fallback
-        from datetime import datetime, timezone
-
-        now = (
-            datetime.now(timezone.utc)
-            .isoformat(timespec="seconds")
-            .replace("+00:00", "Z")
-        )
-
     return {
         "BOND_IDENTITY": "LURES",
         "BOND_CODENAME": "LURES",
@@ -291,7 +309,8 @@ def generate_variables(
         "NUMPY_VERSION": numpy_version(),
         "PYTHON_VERSION": platform.python_version(),
         "PLATFORM": sys.platform,
-        "GENERATION_TIMESTAMP": now,
+        # Committed config field, not a clock read — see manuscript_date().
+        "MANUSCRIPT_DATE": manuscript_date(paper),
     }
 
 

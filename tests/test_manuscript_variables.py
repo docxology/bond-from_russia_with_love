@@ -15,17 +15,17 @@ from from_russia_with_love.manuscript_variables import (
     _traffic_field,
     generate_variables,
     load_mission_config,
+    manuscript_date,
     validate_mission_config,
 )
 from from_russia_with_love.sigint import intercept_channel
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-_FIXED_NOW = "2026-08-04T00:00:00Z"
 
 
 @pytest.fixture(scope="module")
 def variables() -> dict[str, object]:
-    return generate_variables(PROJECT_ROOT, allow_draft=True, now=_FIXED_NOW)
+    return generate_variables(PROJECT_ROOT, allow_draft=True)
 
 
 def test_config_loaded() -> None:
@@ -63,20 +63,31 @@ def test_variables_live_values(variables: dict[str, object]) -> None:
     assert variables["LURES_RECOVERED_EXACT"] == "True"
     assert variables["LURES_HANDOFF_STATE"] == "handoff"
     assert len(str(variables["LURES_CONFIRM_CODE"])) == 6
-    assert variables["GENERATION_TIMESTAMP"] == _FIXED_NOW
 
 
 def test_variables_deterministic() -> None:
-    a = generate_variables(PROJECT_ROOT, now=_FIXED_NOW)
-    b = generate_variables(PROJECT_ROOT, now=_FIXED_NOW)
+    """Two live calls, nothing injected — the maps must be equal."""
+    a = generate_variables(PROJECT_ROOT)
+    b = generate_variables(PROJECT_ROOT)
     assert a == b
 
 
-def test_variables_wallclock_fallback() -> None:
-    # Omitting `now` exercises the wall-clock fallback branch.
+def test_manuscript_date_comes_from_the_committed_config() -> None:
+    """The date token is a config value, not a clock read."""
+    config = load_mission_config(PROJECT_ROOT)
+    paper = config["paper"]
+    assert isinstance(paper, dict)
     variables = generate_variables(PROJECT_ROOT)
-    assert "GENERATION_TIMESTAMP" in variables
-    assert str(variables["GENERATION_TIMESTAMP"]).endswith("Z")
+    assert variables["MANUSCRIPT_DATE"] == str(paper["date"])
+    assert "GENERATION_TIMESTAMP" not in variables
+
+
+@pytest.mark.parametrize("bad", [{}, {"date": None}, {"date": "   "}])
+def test_manuscript_date_missing_is_rejected(bad: dict[str, object]) -> None:
+    """Positive control: the date is required, so it can never silently
+    fall back to a clock read."""
+    with pytest.raises(ValueError, match="paper.date"):
+        manuscript_date(bad)
 
 
 def test_variables_keywords_fallback_branch(tmp_path: Path) -> None:
@@ -84,10 +95,11 @@ def test_variables_keywords_fallback_branch(tmp_path: Path) -> None:
     manuscript = tmp_path / "manuscript"
     manuscript.mkdir(parents=True)
     (manuscript / "config.yaml").write_text(
-        "paper:\n  title: T\n  version: 0.1.0\nkeywords: just-a-string\n",
+        'paper:\n  title: T\n  version: 0.1.0\n  date: "2026-01-01"\n'
+        "keywords: just-a-string\n",
         encoding="utf-8",
     )
-    variables = generate_variables(tmp_path, now=_FIXED_NOW)
+    variables = generate_variables(tmp_path)
     assert variables["CONFIG_KEYWORDS"] == ""  # non-list keywords -> empty join
 
 
@@ -144,7 +156,7 @@ def test_generate_variables_rejects_drifted_config(tmp_path: Path) -> None:
         encoding="utf-8",
     )
     with pytest.raises(ValueError, match="disagrees with scenario.py"):
-        generate_variables(tmp_path, now=_FIXED_NOW)
+        generate_variables(tmp_path)
 
 
 def test_objective_count_token_tracks_the_canonical_tuple(

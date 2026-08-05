@@ -11,8 +11,11 @@ this directory. This tree is **local-only** — there is no remote, never push.
 - No mock framework. Real data + real computation only.
 - Coverage floor: 90% line-and-branch on `src/`
   (`uv run pytest tests/ --cov=src --cov-fail-under=90`).
-- Deterministic: fixed seeds; no untracked RNG; no wall-clock in tracked
-  artifacts (`output/` is regenerable and git-ignored).
+- Deterministic: fixed seeds; no untracked RNG; no wall-clock read anywhere,
+  in tracked files or in generated `output/`, so regeneration is byte-for-byte
+  identical (`output/` is regenerable and git-ignored). Dates that must appear
+  in the manuscript come from `manuscript/config.yaml` (`paper.date`), never
+  from `datetime.now()`.
 - Thin orchestrators in `scripts/`; business logic in `src/`.
 - Type hints and docstrings on every public function. `ruff check`,
   `ruff format --check` and `mypy` clean on `src/` and `scripts/`.
