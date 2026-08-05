@@ -1,16 +1,23 @@
+% LURES — From Russia with Love (1963) · PROJECT BOND film package.
+% Every entry below is a real, checkable source for a model this package
+% actually implements. The two @misc entries are the sibling BOND suite
+% packages this film depends on (local-only working tree, no DOIs).
+
 @misc{bond_api,
   title        = {BOND-API: The Frozen MissionProvider Protocol},
   author       = {Active Inference Institute},
   year         = {2026},
-  note         = {PROJECT BOND suite, layer 1},
+  note         = {PROJECT BOND suite, layer 1; local-only working tree},
 }
 
 @misc{bond_utilities,
   title        = {BOND-UTILITIES: Q-BRANCH Layer-0 Foundation},
   author       = {Active Inference Institute},
   year         = {2026},
-  note         = {PROJECT BOND suite, layer 0},
+  note         = {PROJECT BOND suite, layer 0; local-only working tree},
 }
+
+% --- Localisation (direction_finding.py) ------------------------------------
 
 @article{chan1994hyperbolic,
   author  = {Chan, Y. T. and Ho, K. C.},
@@ -22,6 +29,17 @@
   pages   = {1905--1915},
 }
 
+@book{nocedal2006numerical,
+  author    = {Nocedal, Jorge and Wright, Stephen J.},
+  title     = {Numerical Optimization},
+  edition   = {2},
+  publisher = {Springer},
+  year      = {2006},
+  note      = {Gauss--Newton for non-linear least squares},
+}
+
+% --- Combinatorial optimisation (bait_allocation.py, courier_schedule.py) ---
+
 @book{martello1990knapsack,
   author    = {Martello, Silvano and Toth, Paolo},
   title     = {Knapsack Problems: Algorithms and Computer Implementations},
@@ -29,16 +47,80 @@
   year      = {1990},
 }
 
+@book{bellman1957dynamic,
+  author    = {Bellman, Richard},
+  title     = {Dynamic Programming},
+  publisher = {Princeton University Press},
+  year      = {1957},
+}
+
 @book{kleinberg2005algorithm,
   author    = {Kleinberg, Jon and Tardos, \'{E}va},
   title     = {Algorithm Design},
   publisher = {Addison-Wesley},
   year      = {2005},
+  note      = {Chapter 4: greedy interval scheduling},
 }
 
-@misc{fleming1963russia,
-  title        = {From Russia, with Love},
-  author       = {Fleming, Ian},
-  year         = {1957},
-  publisher    = {Jonathan Cape},
+@book{garey1979computers,
+  author    = {Garey, Michael R. and Johnson, David S.},
+  title     = {Computers and Intractability: A Guide to the Theory of
+               NP-Completeness},
+  publisher = {W. H. Freeman},
+  year      = {1979},
+  note      = {Problem [SS1], sequencing with release times and deadlines:
+               NP-complete in the strong sense},
+}
+
+% --- Channel, cipher and hash models (sigint.py, handoff_protocol.py) -------
+
+@book{proakis2008digital,
+  author    = {Proakis, John G. and Salehi, Masoud},
+  title     = {Digital Communications},
+  edition   = {5},
+  publisher = {McGraw-Hill},
+  year      = {2008},
+  note      = {Additive white Gaussian noise channel; symbol decision},
+}
+
+@article{shannon1949secrecy,
+  author  = {Shannon, Claude E.},
+  title   = {Communication Theory of Secrecy Systems},
+  journal = {Bell System Technical Journal},
+  year    = {1949},
+  volume  = {28},
+  number  = {4},
+  pages   = {656--715},
+}
+
+@techreport{nist2015fips180,
+  author      = {{National Institute of Standards and Technology}},
+  title       = {Secure Hash Standard (SHS)},
+  institution = {U.S. Department of Commerce},
+  type        = {Federal Information Processing Standards Publication},
+  number      = {FIPS PUB 180-4},
+  year        = {2015},
+}
+
+% --- Decision surface (entrapment_engine.py) --------------------------------
+
+@article{cox1958regression,
+  author  = {Cox, David R.},
+  title   = {The Regression Analysis of Binary Sequences},
+  journal = {Journal of the Royal Statistical Society, Series B},
+  year    = {1958},
+  volume  = {20},
+  number  = {2},
+  pages   = {215--242},
+}
+
+% --- Source material --------------------------------------------------------
+
+@book{fleming1957russia,
+  author    = {Fleming, Ian},
+  title     = {From Russia, with Love},
+  publisher = {Jonathan Cape},
+  address   = {London},
+  year      = {1957},
+  note      = {The 1963 Eon film is an adaptation of this 1957 novel},
 }

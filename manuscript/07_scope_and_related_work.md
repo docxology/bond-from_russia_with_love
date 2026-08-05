@@ -5,24 +5,50 @@
 LURES is an analytical, deterministic mission model — not a real-world
 targeting or deception tool. The entrapment engine models lure effectiveness
 as a decision surface for defensive countermeasure evaluation; the knapsack
-allocation and courier scheduler are combinatorial optimisation on synthetic
+allocation and courier scheduler are combinatorial optimisation over synthetic
 records; the SIGINT and TDOA modules simulate channel interception and
-geolocation for study; the handoff protocol is a state-machine fragment. It
-performs no real signal capture, no real cryptanalysis of live systems, and
+geolocation for study; the handoff protocol is a state-machine fragment. The
+package performs no real signal capture, no cryptanalysis of live systems, and
 no targeting of persons.
+
+The XOR keystream cipher in `sigint.py` is a *pedagogical* construction for
+producing a scrambled symbol stream to intercept. It derives its keystream
+from a seeded PRNG, which makes it reproducible and completely unsuitable as
+cryptography; nothing in this package should be read as a security claim about
+the cipher.
+
+Two further boundaries are worth stating plainly. First, the courier scheduler
+is a heuristic and is not optimal (§2.5); the exact solver exists to measure
+that gap, not to be run at scale, and refuses instances beyond its documented
+size bound. Second, the bite-probability surface is a modelling *choice* — a
+bounded logistic in strength and susceptibility — not an empirically fitted
+model of anything, and its parameters are not calibrated against data.
 
 ## Related Work
 
 - **BOND-API (THE PROTOCOL)** — the frozen `MissionProvider` contract this
-  film implements (discovery, lifecycle, provenance).
-- **BOND-UTILITIES (Q-BRANCH)** — the Layer-0 foundation (ciphers,
-  codenames, provenance persistence, reporting) that downstream packages may
-  bind to.
-- **Combinatorial optimisation** — exact 0/1 knapsack via dynamic
-  programming [@martello1990knapsack]; earliest-finish-first interval
-  scheduling [@kleinberg2005algorithm].
-- **Localisation** — hyperbolic (TDOA) position estimation by Gauss–Newton
-  least squares, following the estimator of Chan & Ho [@chan1994hyperbolic].
-- Classical cipher and channel models underpinning the SIGINT module draw on
-  the elementary XOR keystream (one-time-pad style) and additive white
-  Gaussian noise channel model.
+  film implements (discovery, lifecycle, provenance) [@bond_api].
+- **BOND-UTILITIES (Q-BRANCH)** — the Layer-0 foundation (ciphers, codenames,
+  provenance persistence, reporting) that downstream packages may bind to
+  [@bond_utilities].
+- **Combinatorial optimisation** — exact 0/1 knapsack via dynamic programming
+  [@martello1990knapsack], on the classical dynamic-programming formulation
+  [@bellman1957dynamic]; interval-scheduling greedy algorithms
+  [@kleinberg2005algorithm]. The scheduling problem solved here,
+  $1 \mid r_j, d_j \mid \sum U_j$, is strongly NP-hard
+  [@garey1979computers], which is why the package pairs a heuristic with an
+  exact subset dynamic program rather than claiming optimality.
+- **Localisation** — hyperbolic (TDOA) position estimation, following the
+  estimator of Chan & Ho [@chan1994hyperbolic]; the Gauss–Newton iteration
+  used here is the standard non-linear least-squares method
+  [@nocedal2006numerical].
+- **Channel and cipher models** — the additive white Gaussian noise channel
+  and symbol-decision model follow standard digital-communications treatment
+  [@proakis2008digital]; the keystream construction is an elementary
+  one-time-pad-style XOR stream in the sense of Shannon's secrecy analysis
+  [@shannon1949secrecy]. The handoff confirm code uses SHA-256 as specified in
+  the NIST secure hash standard [@nist2015fips180].
+- **Decision surface** — the logistic response model used for bite
+  probability is the classical binary-response form [@cox1958regression].
+- **Source material** — Ian Fleming's novel [@fleming1957russia], of which the
+  1963 film is an adaptation.

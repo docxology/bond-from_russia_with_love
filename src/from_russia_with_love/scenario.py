@@ -26,6 +26,7 @@ __all__ = [
     "CIPHERS",
     "ENGAGEMENT_THRESHOLD",
     "HANDOFF_CALL_SIGN",
+    "OBJECTIVES",
     "PLAINTEXT",
     "RENDEZVOUS",
     "SCHEDULE_START",
@@ -40,6 +41,19 @@ __all__ = [
 
 #: Fixed seed for every seeded draw in the mission (0 disables randomness).
 SEED = 11
+
+#: The mission's declared objectives, in execution order. ``mission.py`` puts
+#: these verbatim into its :class:`MissionBrief` and ``manuscript_variables``
+#: counts them for ``{{LURES_NUM_OBJECTIVES}}``, so the brief and the
+#: manuscript can never report a different number of objectives.
+OBJECTIVES: tuple[str, ...] = (
+    "evaluate a deception lure campaign via the entrapment engine",
+    "allocate the lure budget across the analytical target pool",
+    "intercept and decipher an encoded SIGINT channel",
+    "geolocate the transmitter by TDOA direction finding",
+    "schedule defector-handoff rendezvous within time windows",
+    "execute the green-pathed defector handoff protocol",
+)
 
 # --- SIGINT interception -----------------------------------------------------
 PLAINTEXT = "LURES inbound relay: defector green for handoff"

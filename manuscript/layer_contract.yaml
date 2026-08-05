@@ -1,22 +1,36 @@
+# LURES layer contract — machine-readable form of docs/architecture.md.
+# Dependency direction is strictly downward: the pure core knows nothing about
+# the adapter, and nothing in the pure core may import bond_api.
 layers:
   pure_core:
     files:
+      - src/from_russia_with_love/scenario.py
       - src/from_russia_with_love/entrapment_engine.py
+      - src/from_russia_with_love/bait_allocation.py
       - src/from_russia_with_love/sigint.py
+      - src/from_russia_with_love/direction_finding.py
+      - src/from_russia_with_love/courier_schedule.py
       - src/from_russia_with_love/handoff_protocol.py
-    rule: no bond_api, no infrastructure imports
+    rule: no bond_api, no infrastructure imports; stdlib + numpy only
+    enforced_by: tests/test_mission.py::test_import_without_bond_api_fallback
   adapter:
     files:
       - src/from_russia_with_love/mission.py
-    rule: only module importing bond_api (frozen protocol)
+    rule: only module importing bond_api (the frozen MissionProvider protocol)
+    frozen_surface:
+      - MissionProvider (class name and film attribute)
+      - brief / recon / plan / execute / debrief
+      - GADGETS (module-level dict)
+      - register_gadgets()
   workflow:
     files:
       - src/from_russia_with_love/manuscript_variables.py
       - src/from_russia_with_love/figures/lure_surface.py
-    rule: pure core + yaml/matplotlib, no bond_api
+      - src/from_russia_with_love/figures/tdoa_geometry.py
+    rule: pure core + yaml/matplotlib/numpy, no bond_api
   scripts:
     files:
       - scripts/run_mission.py
       - scripts/00_preflight.py
       - scripts/z_generate_manuscript_variables.py
-    rule: thin orchestrators, sys.path bootstrap
+    rule: thin orchestrators, sys.path bootstrap, no business logic

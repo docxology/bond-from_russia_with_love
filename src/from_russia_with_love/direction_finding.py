@@ -85,7 +85,9 @@ def _pair_tdoa(
     return tuple(pairs), tuple(values)
 
 
-def _arrival_pairs(pairs: tuple[tuple[int, int], ...], tdoa: tuple[float, ...]) -> None:
+def _validate_pair_lengths(
+    pairs: tuple[tuple[int, int], ...], tdoa: tuple[float, ...]
+) -> None:
     """Validate that the pair list and TDOA measurement vector agree."""
     if len(pairs) != len(tdoa):
         raise ValueError("pairs and tdoa must have the same length")
@@ -137,7 +139,7 @@ def estimate_position(
     """
     if len(receivers) < _MIN_RECEIVERS:
         raise ValueError(f"at least {_MIN_RECEIVERS} receivers are required")
-    _arrival_pairs(pairs, tdoa)
+    _validate_pair_lengths(pairs, tdoa)
     if speed <= 0.0:
         raise ValueError("speed must be positive")
     if initial_guess is None:

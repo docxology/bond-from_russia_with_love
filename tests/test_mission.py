@@ -16,6 +16,7 @@ from bond_api.protocol import (
 )
 from bond_api.registry import GadgetRegistry
 
+from from_russia_with_love import scenario
 from from_russia_with_love.mission import GADGETS, MissionProvider, register_gadgets
 
 
@@ -30,6 +31,9 @@ def test_brief_shape() -> None:
     brief = provider.brief()
     assert isinstance(brief, MissionBrief)
     assert brief.codename == "LURES"
+    # The brief must publish the canonical objectives verbatim, so the count
+    # in the manuscript and the count in the brief cannot drift apart.
+    assert brief.objectives == scenario.OBJECTIVES
     assert len(brief.objectives) == 6
     assert len(brief.assets) == 3
     assert len(brief.constraints) >= 1
@@ -62,6 +66,12 @@ def test_execute_deterministic_success() -> None:
     assert first.results["recovered_exact"] is True
     assert first.results["tdoa_error"] < 0.5
     assert first.results["schedule_count"] >= 1
+    # The heuristic plan is reported alongside the exact optimum and the gap.
+    assert first.results["schedule_optimum"] >= first.results["schedule_count"]
+    assert (
+        first.results["schedule_gap"]
+        == first.results["schedule_optimum"] - first.results["schedule_count"]
+    )
     assert isinstance(first.provenance, Provenance)
     assert first.provenance.seed == 11
     # full determinism: identical result dicts
@@ -92,7 +102,7 @@ def test_debrief_lessons() -> None:
     outcome = provider.execute(plan)
     debrief = provider.debrief(outcome)
     assert debrief.outcome is outcome
-    assert len(debrief.lessons) == 5
+    assert len(debrief.lessons) == 6
 
 
 def test_gadgets_registered() -> None:

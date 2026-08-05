@@ -33,7 +33,10 @@ from bond_api.protocol import (
 
 from from_russia_with_love import scenario
 from from_russia_with_love.bait_allocation import allocate_lures, greedy_allocate
-from from_russia_with_love.courier_schedule import schedule_handoffs
+from from_russia_with_love.courier_schedule import (
+    max_completed_handoffs,
+    schedule_handoffs,
+)
 from from_russia_with_love.direction_finding import (
     estimate_position,
     localization_error,
@@ -91,14 +94,7 @@ class MissionProvider:  # noqa: N801 — class name is fixed by the discovery co
         return MissionBrief(
             film=self.film,
             codename="LURES",
-            objectives=(
-                "evaluate a deception lure campaign via the entrapment engine",
-                "allocate the lure budget across the analytical target pool",
-                "intercept and decipher an encoded SIGINT channel",
-                "geolocate the transmitter by TDOA direction finding",
-                "schedule defector-handoff rendezvous within time windows",
-                "execute the green-pathed defector handoff protocol",
-            ),
+            objectives=scenario.OBJECTIVES,
             assets=(
                 Asset(
                     kind="playbook",
@@ -236,8 +232,11 @@ class MissionProvider:  # noqa: N801 — class name is fixed by the discovery co
             speed=scenario.TDOA_SPEED,
         )
         tdoa_error = localization_error(estimate.position, scenario.TDOA_TRANSMITTER)
-        # 5. Courier schedule: handoff windows within time limits.
+        # 5. Courier schedule: heuristic plan, scored against the exact optimum.
         schedule = schedule_handoffs(
+            scenario.RENDEZVOUS, start_time=scenario.SCHEDULE_START
+        )
+        schedule_optimum = max_completed_handoffs(
             scenario.RENDEZVOUS, start_time=scenario.SCHEDULE_START
         )
         # 6. Handoff: green path plus the red-path abort drill.
@@ -265,6 +264,8 @@ class MissionProvider:  # noqa: N801 — class name is fixed by the discovery co
             "tdoa_converged": estimate.converged,
             "tdoa_iterations": estimate.iterations,
             "schedule_count": schedule.scheduled_count,
+            "schedule_optimum": schedule_optimum,
+            "schedule_gap": schedule_optimum - schedule.scheduled_count,
             "schedule_finish": schedule.finish_time,
             "handoff_state": green.state.value,
             "handoff_path": green.path,
@@ -295,6 +296,8 @@ class MissionProvider:  # noqa: N801 — class name is fixed by the discovery co
                 "deterministic interception round-trips at high SNR",
                 "exact knapsack allocation dominates the greedy baseline",
                 "TDOA Gauss-Newton recovers the transmitter within a small error",
+                "the courier heuristic is scored against the exact schedule "
+                "optimum rather than assumed optimal",
                 "the confirm code gates handoff completion — a wrong code aborts",
                 "lure effectiveness is a monotone decision surface",
             ),

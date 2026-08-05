@@ -15,7 +15,9 @@ PROJECT BOND film package, mission codename **LURES**. Local-only tree, no remot
 - `sigint.py` — layered XOR keystream ciphers, Gaussian-noise capture, symbol
   decision, deciphering, empirical SNR, traffic profile, burst segmentation.
 - `direction_finding.py` — TDOA measurements + Gauss-Newton transmitter geolocation.
-- `courier_schedule.py` — earliest-finish-first handoff-window scheduling.
+- `courier_schedule.py` — earliest-deadline-first handoff-window *heuristic*
+  (`schedule_handoffs`) plus the exact subset-DP optimum
+  (`max_completed_handoffs`) it is scored against.
 - `handoff_protocol.py` — meet/challenge/confirm/abort state machine (SHA-256
   confirm) with a red-path abort drill.
 - `scenario.py` — canonical single source of truth shared by mission + tokens + figures.
@@ -41,8 +43,17 @@ uv run python scripts/z_generate_manuscript_variables.py
   (the byte-grid model needs >=~60 dB to be lossless).
 - Scenario constants live ONLY in `scenario.py` — the mission, manuscript
   tokens, and figures must all consume it to avoid metric drift.
+  `manuscript/config.yaml` mirrors the headline parameters and
+  `validate_mission_config()` fails the build if the two disagree.
 - `output/` is git-ignored (regenerable); rerun the vars script to reproduce.
-- All `{{TOKEN}}`s must exist in `generate_variables()` — the live
-  cross-reference test enforces it.
+- Every manuscript token must exist in `generate_variables()` — the live
+  cross-reference test enforces it, and it also fires on a token written into
+  prose as an illustration, so describe the mechanism in words instead.
 - TDOA needs >=3 receivers; collinear sites leave the normal equations
   singular (defensive branch, documented rather than force-tested).
+- `schedule_handoffs` is a HEURISTIC and is NOT optimal — maximising completed
+  meets with release times and deadlines is NP-hard. Do not re-describe it as
+  optimal; a counterexample is pinned in `tests/test_courier_schedule.py`.
+- `Rendezvous` is a frozen dataclass, so value-equal meets compare equal.
+  Track them by index, never by set membership (this was a real bug: a
+  duplicate meet vanished from the scheduled/unscheduled ledger entirely).

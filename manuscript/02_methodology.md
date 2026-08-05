@@ -82,10 +82,38 @@ the same scenario always yields the same estimate.
 ## 2.5 Courier handoff scheduling
 
 A courier must visit defector-handoff rendezvous, each occupying a fixed
-duration inside a time window $[e_i, l_i]$. The planner maximises the number
-of completed meets by **earliest-finish-first interval scheduling**
-(@kleinberg2005algorithm): windows are sorted by their latest start and taken
-whenever they fit after the current position.
+duration $d_i$ somewhere inside a time window $[e_i, l_i]$, and can attend
+only one meet at a time. Maximising the number of completed meets is the
+single-machine throughput problem with release times and deadlines,
+$1 \mid r_j, d_j \mid \sum U_j$, which is strongly NP-hard
+[@garey1979computers]. The package therefore ships two solvers and reports the
+distance between them instead of claiming a cheap algorithm is also optimal.
+
+The **heuristic** — the plan the mission executes — is earliest-deadline-first:
+windows are ordered by latest feasible start $l_i - d_i$ and each is taken when
+it still fits after the courier's current position, in the spirit of the
+classical interval-scheduling greedy [@kleinberg2005algorithm]. It is linear
+after the sort, but it is genuinely sub-optimal in general: a long, slack
+window sorts first and can crowd out two short meets that together would have
+scored higher. A concrete instance exhibiting this is pinned in the test suite.
+
+The **exact optimum** is a dynamic program over subsets. Writing
+$T(S)$ for the earliest time by which every meet in $S \subseteq \{1..n\}$ can
+have been completed,
+
+$$
+T(\emptyset) = t_0, \qquad
+T(S \cup \{j\}) = \min_{S} \; \bigl(\max(T(S), e_j) + d_j\bigr)
+$$
+
+over those $j \notin S$ with $\max(T(S), e_j) \le l_j - d_j$, and the answer is
+the largest $|S|$ with $T(S)$ defined. Because feasibility of any extension is
+monotone in the current time, retaining only the earliest completion time per
+subset loses no optimal solution, so this is the true maximum rather than a
+bound. It runs in $O(2^n n)$ and is bounded to small instances by construction.
+
+Section 03 reports the heuristic count, the exact optimum, and their gap as
+three separately computed tokens.
 
 ## 2.6 Defector handoff protocol
 

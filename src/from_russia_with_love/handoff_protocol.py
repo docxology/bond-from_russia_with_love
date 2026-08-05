@@ -13,8 +13,8 @@ States
 with ``ABORT`` reachable from every active stage.
 
 The confirm code is derived **deterministically** from the challenge and the
-call-sign via a stable fingerprunt so no random state or wall-clock time is
-involved.
+call sign via a stable SHA-256 fingerprint (NIST FIPS 180-4), so no random
+state or wall-clock time is involved.
 """
 
 from __future__ import annotations
@@ -129,8 +129,12 @@ class HandoffProtocol:
     def confirm(self, code: str) -> HandoffState:
         """Submit a confirm code; only the exact match advances to CONFIRM.
 
-        Any other confirm code raises in CONFIRM → ABORT. Thanks to the
-        challenge/confirm derivation, a wrong code cannot complete.
+        A wrong code does **not** raise: it drives the documented red path
+        ``CHALLENGE -> ABORT`` and returns ``ABORT``, so a failed confirm is an
+        ordinary protocol outcome rather than an exception. Calling ``confirm``
+        outside the ``CHALLENGE`` state *is* an error and raises ``ValueError``.
+        Because the confirm code is derived from the challenge and call sign,
+        no code other than the exact match can reach ``HANDOFF``.
         """
         if self.state != HandoffState.CHALLENGE:
             raise ValueError(

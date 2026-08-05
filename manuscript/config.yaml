@@ -3,7 +3,7 @@
 # every {{TOKEN}} the manuscript references. Local-only tree: no DOIs.
 paper:
   title: "From Russia with Love: LURES — Special-Agent Mission Software"
-  subtitle: "Entrapment Playbooks, SIGINT Channel Interception, and Defector Handoff in a Deterministic Mission Model"
+  subtitle: "Entrapment Playbooks, Lure-Budget Allocation, SIGINT Interception, TDOA Direction Finding, and Defector Handoff in a Deterministic Mission Model"
   version: "0.1.0"
   date: "2026-08-04"
 
@@ -21,8 +21,11 @@ publication:
 
 keywords:
   - "entrapment playbook"
+  - "0/1 knapsack allocation"
   - "SIGINT interception"
   - "cipher deciphering"
+  - "TDOA direction finding"
+  - "interval scheduling"
   - "defector handoff protocol"
   - "state machine"
   - "deterministic simulation"
@@ -32,11 +35,14 @@ metadata:
   license: "MIT"
   language: "en"
 
-# Mission scenario parameters — read by manuscript_variables.py and mission.py.
-# All values here are fixed so every metric in the manuscript is reproducible.
+# Mission scenario parameters. The EXECUTED values live in
+# src/from_russia_with_love/scenario.py (the single source of truth); the block
+# below restates the headline parameters for a human reading this config, and
+# manuscript_variables.validate_mission_config() fails the manuscript build if
+# the two ever disagree. Edit scenario.py first, then mirror it here.
 mission:
   codename: "LURES"
-  objectives: 3
+  objectives: 6
   bait_profiles: 3
   engagement_threshold: 0.5
   snr_db: 80.0
