@@ -32,3 +32,11 @@ Every stage is reproducible, mock-free, and covered by a real-data test suite
 above the package's 90% line-and-branch gate. Where a branch is defensive
 rather than exercised — a singular Jacobian, a coincident intercept site — it
 is documented as such rather than papered over with an artificial test.
+
+The package is also honest about what it does *not* know. TDOA localisation
+carries a Cramér–Rao uncertainty bound rather than a single over-confident
+number; both optimality gaps are reported even when they are zero; and the
+seeding is disclosed as fixing one realisation of a stochastic model, not the
+whole distribution. A deterministic mission model that states its own
+uncertainty is more useful — and more defensible — than one that merely looks
+deterministic.

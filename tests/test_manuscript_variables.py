@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 import re
 from pathlib import Path
 
@@ -122,6 +123,23 @@ def test_intercept_field_helpers_read_a_real_intercept() -> None:
 def test_shipped_config_agrees_with_scenario() -> None:
     """The real config must pass the drift guard (it is the shipped state)."""
     validate_mission_config(load_mission_config(PROJECT_ROOT))
+
+
+def test_validate_mission_config_rejects_version_drift(tmp_path: Path) -> None:
+    """C2: the config's version copy must equal the single source of truth.
+
+    ``paper.version`` feeds {{BOND_VERSION}} and mission provenance reads the
+    same ``__version__``; a drifted config copy must fail the manuscript build
+    rather than quietly report a stale version.
+    """
+    manuscript = tmp_path / "manuscript"
+    manuscript.mkdir(parents=True)
+    (manuscript / "config.yaml").write_text(
+        'paper:\n  title: T\n  version: 9.9.9\n  date: "2026-01-01"\n',
+        encoding="utf-8",
+    )
+    with pytest.raises(ValueError, match="disagrees with the package version"):
+        generate_variables(tmp_path)
 
 
 def test_config_scenario_drift_is_detected() -> None:
@@ -361,6 +379,36 @@ def test_every_cited_bib_key_exists() -> None:
         )
     assert cited, "no citations found — the check would be vacuous"
     assert not (cited - defined), f"undefined bib keys cited: {sorted(cited - defined)}"
+
+
+def test_schedule_witness_tokens_report_the_separation(
+    variables: dict[str, object],
+) -> None:
+    """E1: the scheduler witness instance separates the solvers (gap > 0).
+
+    The canonical RENDEZVOUS does not — the heuristic reaches the optimum
+    there — so the manuscript's scheduling-separation claim is measured on
+    this witness instance, mirroring the allocation witness. The token must be
+    strict, positive, and consistent with the exact-solver optimum.
+    """
+    total = int(str(variables["LURES_SCHEDULE_WITNESS_TOTAL"]))
+    count = int(str(variables["LURES_SCHEDULE_WITNESS_COUNT"]))
+    optimum = int(str(variables["LURES_SCHEDULE_WITNESS_OPTIMUM"]))
+    gap = int(str(variables["LURES_SCHEDULE_WITNESS_GAP"]))
+    assert total == len(scenario.SCHEDULE_WITNESS)
+    assert 0 <= count <= optimum
+    assert gap == optimum - count
+    assert gap > 0  # the witness instance genuinely separates the solvers
+
+
+def test_crlb_tokens_are_live_positive_bounds(variables: dict[str, object]) -> None:
+    """The uncertainty tokens are computed, finite, and positive on the array."""
+    crlb = float(str(variables["LURES_TDOA_CRLB"]))
+    assert math.isfinite(crlb)
+    assert crlb > 0.0
+    assert variables["LURES_TDOA_ERROR_ABOVE_CRLB"] in ("True", "False")
+    # The bound is a coordinate-unit RMS; the site-spacing scale is larger.
+    assert crlb < float(str(variables["LURES_TDOA_SITE_SPACING"]))
 
 
 def test_all_manuscript_tokens_are_generated(variables: dict[str, object]) -> None:

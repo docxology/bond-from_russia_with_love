@@ -24,6 +24,39 @@ size bound. Second, the bite-probability surface is a modelling *choice* — a
 bounded logistic in strength and susceptibility — not an empirically fitted
 model of anything, and its parameters are not calibrated against data.
 
+## Uncertainty and limitations
+
+Beyond the boundaries above, the package reports its uncertainty honestly
+rather than implying that a deterministic single number is a confident one:
+
+- **TDOA localisation uncertainty is quantified, not asserted away.** §3.3
+  reports both the realised estimate error and the Cramér–Rao lower bound
+  (`{{LURES_TDOA_CRLB}}`) for the same geometry and timing noise. The CRLB is a
+  bound on achievable *variance*, so a single seeded realisation can land on
+  either side of it (the canonical realisation lands below it,
+  `{{LURES_TDOA_ERROR_ABOVE_CRLB}}`); a degenerate array has an infinite bound.
+  The numbers are generated, not fitted, to a particular noise draw.
+- **The seeding fixes the realisation, not the distribution.** Every quantity
+  that is stochastic under the model — the SIGINT capture noise, the TDOA
+  timing noise, the lure generation — is the outcome of one committed seed
+  (`scenario.SEED`). Regeneration is byte-identical by construction, but a
+  *different* seed would produce a *different* realisation of the same
+  underlying distribution. The manuscript therefore reports what was actually
+  computed, never a resample.
+- **Both optimality gaps are measured, and may be zero.** The canonical
+  allocation pool and the canonical rendezvous set both fail to separate the
+  exact solver from its heuristic (gaps `{{LURES_GREEDY_GAP}}` and
+  `{{LURES_SCHEDULE_GAP}}`); the separation is only visible on the witness
+  instances (`{{LURES_WITNESS_GAP}}` and `{{LURES_SCHEDULE_WITNESS_GAP}}`).
+  Reporting the zero as zero prevents the exact solvers from being dressed up
+  as necessary where they are not.
+- **The decipherability result is a high-SNR, seed-specific outcome.** At
+  `{{LURES_SNR_DB}}` dB the recover is exact (`{{LURES_RECOVERED_EXACT}}`) on
+  this draw; below some SNR ceiling byte recovery would fail. The package makes
+  no claim about performance at low SNR.
+- **The XOR keystream cipher is pedagogical.** It is derived from a seeded PRNG
+  and is unsuitable as cryptography (§2.3). Nothing here is a security claim.
+
 ## Related Work
 
 - **BOND-API (THE PROTOCOL)** — the frozen `MissionProvider` contract this

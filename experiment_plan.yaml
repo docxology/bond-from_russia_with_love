@@ -41,11 +41,13 @@ expected_artifacts:
   - output/figures/tdoa_geometry.png
 
 baseline:
-  - deterministic byte-identity across reruns
-  # NOT "exact dominates greedy" — that is a theorem about the exact solver,
+  # NOT "exact dominates greedy": that is a theorem about the exact solver,
   # true by construction and unable to fail on any scenario. The measurable
   # baselines are the gap sizes, which differ per instance.
-  - measured exact-minus-greedy allocation gap on the canonical target pool
+  - "deterministic byte-identity across reruns"
+  - >-
+    measured exact-minus-greedy allocation gap on the canonical target pool
     (zero: greedy ties the exact knapsack there)
-  - measured exact-minus-greedy allocation gap on GREEDY_WITNESS_TARGETS
+  - >-
+    measured exact-minus-greedy allocation gap on GREEDY_WITNESS_TARGETS
     (strictly positive: the instance that actually separates the solvers)

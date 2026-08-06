@@ -256,3 +256,109 @@ uv run python scripts/z_generate_manuscript_variables.py   # output/data + both 
 
 `docs/_generated/COUNTS.md` records the measured test count and coverage.
 Regenerate it from a run you actually performed — never hand-edit the numbers.
+
+---
+
+# Round-2 (2026-08-06) — deep improvement: correctness + manuscript
+
+**Baseline (measured this round before any edit):**
+`uv run pytest tests/ --cov=src --cov-fail-under=90` → **146 passed, 0 failed,
+0 skipped, 99.25%** line-and-branch on `src/`; `ruff check`, `ruff format
+--check` (28 files) and `mypy src/ scripts/` (16 files) clean; preflight PASS.
+
+**Final (measured this round after all edits):**
+**167 passed, 0 failed, 0 skipped, 99.48%** line-and-branch on `src/`; `ruff
+check` clean; `ruff format --check` clean (31 files); `mypy src/ scripts/` clean
+(16 files); `scripts/00_preflight.py` PASS; `rg -n "template[_]code_project" .`
+zero hits. `docs/_generated/COUNTS.md` regenerated from the real run.
+
+## Findings and fixes (each with a regression/positive-control test)
+
+- **C1 — mission constants now live in `scenario.py`.** The literals
+  `"honey-trap-alpha"`, burst `* 0.5`, `min_gap=1`, `tdoa_error < 0.5`,
+  `scheduled_count >= 1` and `input_hash="lures-mission-input-v2"` were
+  duplicated across `mission.py` and `manuscript_variables.py`. Added named
+  scenario constants `PRIMARY_BAIT_PROFILE`, `BURST_THRESHOLD_FRACTION`,
+  `BURST_MIN_GAP`, `TDOA_SUCCESS_MAX_ERROR`, `SCHEDULE_SUCCESS_MIN_COUNT`,
+  `INPUT_HASH`; both call sites now read them.
+  *Evidence:* `tests/test_mission_constants_in_scenario.py` (V3 gate) scans
+  both adapters and fails if any literal reappears. The exact demo command
+  `rg -n 'honey-trap-alpha|\* 0\.5|min_gap=1|< 0\.5|lures-mission-input' src/ | rg -v scenario.py`
+  now returns nothing.
+- **C2 — one version source of truth.** `__version__ = "0.1.0"` now lives in
+  `src/from_russia_with_love/__init__.py`; `mission._PACKAGE_VERSION`,
+  `manuscript_variables.PACKAGE_VERSION` and the `{{BOND_VERSION}}` token all
+  read it. `validate_mission_config()` now also rejects a drifted
+  `paper.version`, and the declarative copies (pyproject, CITATION.cff,
+  codemeta.json, .zenodo.json, config.yaml) are checked.
+  *Evidence:* `tests/test_version.py` (all copies agree + drift positive
+  control), `tests/test_manuscript_variables.py::test_validate_mission_config_rejects_version_drift`.
+  Editing only `pyproject.toml`'s version now fails the suite.
+- **C3 — bite-surface steepness named.** `BITE_STEEPNESS = 4.0` is now a
+  documented module constant in `entrapment_engine.py` (referenced in the
+  `bait_bite_probability` docstring), not a bare number in an expression.
+  *Evidence:* `rg -n '4\.0 \*' src/` returns nothing; existing behaviour tests
+  still pass.
+- **C4 — dead `_index` fallback removed.** `greedy_allocate` now sorts
+  indices (the idiom `courier_schedule` uses) rather than records via an
+  identity scan with an unreachable `return len(targets)` fallback.
+  *Evidence:* `bait_allocation.py` is now **100.00%** (was 98.11% with `176`
+  misslisted) and `tests/test_bait_allocation.py::test_greedy_tie_break_is_deterministic_and_ordered`
+  pins the insertion-order tie-break.
+- **C5 — `CipherLayer.key` required at construction.** The type is now
+  `bytes` (no `None` default) and `__post_init__` rejects a missing/empty key,
+  so a keyless layer fails where the caller can see it, not deep inside
+  encipher/decipher.
+  *Evidence:* `tests/test_sigint.py::test_cipher_layer_requires_key_at_construction`.
+- **V1 — adapter and token generator bound to each other.** New
+  `tests/test_mission.py::test_mission_execute_agrees_with_manuscript_variables`
+  runs `execute()` and `generate_variables()` and asserts field-by-field
+  equality on every overlapping quantity; editing one call site alone (e.g. the
+  burst factor in `mission.py`) now fails the suite. `execute()` also exposes
+  `confirm_code` in `results` so the binding is complete.
+- **V2 — the four declarative registries are no longer inert.**
+  `experiment_plan.yaml`, `data/claim_ledger.yaml`, `domain_profile.yaml` and
+  `manuscript/layer_contract.yaml` are now consumed by
+  `tests/test_declarative_registries.py`, failing on drift. **Bonus defect
+  found:** `experiment_plan.yaml` was not even parseable YAML (its `baseline`
+  block contained `key: value` prose); it is now valid YAML and is checked
+  against `scenario.py`.
+- **V3 — constants-in-scenario invariant now has a gate** (see C1 evidence).
+- **D1 — README Gates block now matches AGENTS.** Added
+  `uv run python scripts/00_preflight.py` to the README Gates block.
+- **E1 — scheduler witness instance.** Added `scenario.SCHEDULE_WITNESS`
+  (the long/short-a/short-b instance) plus tokens `LURES_SCHEDULE_WITNESS_*`;
+  §3.4 now reports a strictly positive heuristic-vs-exact gap on it, mirroring
+  the allocation witness.
+  *Evidence:* `tests/test_courier_schedule.py::test_scheduler_witness_instance_separates_the_solvers`,
+  `tests/test_manuscript_variables.py::test_schedule_witness_tokens_report_the_separation`.
+- **New analysis capability — TDOA uncertainty quantification.** Added
+  `direction_finding.crlb_error()`, the Cramér–Rao lower-bound RMS position
+  error from the Fisher information matrix at the true transmitter. It returns
+  `inf` for a degenerate (exactly singular) geometry rather than fabricating a
+  confidence. New tokens `LURES_TDOA_CRLB` and `LURES_TDOA_ERROR_ABOVE_CRLB`;
+  §3.3 and a new "Uncertainty and limitations" section (§7) report the bound,
+  and the conclusion now states that the package discloses its uncertainty.
+  *Evidence:* `tests/test_direction_finding.py` (`test_crlb_*`, four tests).
+
+## Manuscript (round 2)
+
+Regenerated `output/data/manuscript_variables.json` (56 → **62 tokens**) and
+both figures via `scripts/z_generate_manuscript_variables.py`. Added: a §3.0
+"At a glance" results table bound to live tokens; a Cramér–Rao uncertainty
+framing in §3.3; the scheduler-witness separation in §3.4; and an explicit
+"Uncertainty and limitations" section in §7. `manuscript/AGENTS.md` section
+inventory updated for the new tokens.
+
+## Left for a future round
+
+- **E2/E3/E4 remain blocked** on the sibling `bond-utilities`, `bond-coordinator`
+  and `bond-cli`/`bond-ops` packages (provenance persistence, fleet specs,
+  CLI subcommands). Not touched this round.
+- The two remaining uncovered statements in `src/` are documented defensive
+  guards (`direction_finding.py:183` non-finite step, `:317` coincident
+  receiver/transmitter raise) — see `docs/_generated/COUNTS.md`.
+- `experiment_plan.yaml` is now parseable and checked; a future round could
+  deepen the claim-ledger check to validate claim *values*, not just token
+  existence.
+

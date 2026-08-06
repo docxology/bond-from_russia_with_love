@@ -13,7 +13,11 @@ from from_russia_with_love.courier_schedule import (
     max_completed_handoffs,
     schedule_handoffs,
 )
-from from_russia_with_love.scenario import RENDEZVOUS, SCHEDULE_START
+from from_russia_with_love.scenario import (
+    RENDEZVOUS,
+    SCHEDULE_START,
+    SCHEDULE_WITNESS,
+)
 
 
 def _brute_force_max(rendezvous: tuple[Rendezvous, ...], start: float = 0.0) -> int:
@@ -137,6 +141,25 @@ def test_greedy_is_not_optimal_pinned_counterexample() -> None:
     assert heuristic.scheduled_count == 1
     assert optimum == 2
     assert optimum > heuristic.scheduled_count
+
+
+def test_scheduler_witness_instance_separates_the_solvers() -> None:
+    """E1: the scenario's witness instance really does separate the solvers.
+
+    The canonical ``RENDEZVOUS`` reaches the optimum with the heuristic, so
+    the manuscript's scheduling-separation claim is measured on
+    ``scenario.SCHEDULE_WITNESS``. This test binds that constant to the solver
+    behaviour: if the witness is ever edited into a tie, the strict gap here
+    collapses and the suite goes red.
+    """
+    heuristic = schedule_handoffs(SCHEDULE_WITNESS)
+    optimum = max_completed_handoffs(SCHEDULE_WITNESS)
+    assert heuristic.scheduled_count == 1
+    assert optimum == 2
+    assert optimum > heuristic.scheduled_count
+    assert heuristic.scheduled_count + len(heuristic.unscheduled) == len(
+        SCHEDULE_WITNESS
+    )
 
 
 def test_exact_solver_matches_independent_brute_force() -> None:

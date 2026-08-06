@@ -31,6 +31,7 @@ from bond_api.protocol import (
     Step,
 )
 
+from from_russia_with_love import __version__ as _PACKAGE_VERSION  # noqa: N812
 from from_russia_with_love import scenario
 from from_russia_with_love.bait_allocation import allocate_lures, greedy_allocate
 from from_russia_with_love.courier_schedule import (
@@ -50,8 +51,6 @@ from from_russia_with_love.handoff_protocol import HandoffProtocol
 from from_russia_with_love.sigint import intercept_channel, segment_bursts
 
 __all__ = ["MissionProvider", "GADGETS", "register_gadgets", "_PACKAGE_VERSION"]
-
-_PACKAGE_VERSION = "0.1.0"
 
 
 def register_gadgets() -> None:
@@ -150,7 +149,7 @@ class MissionProvider:  # noqa: N801 — class name is fixed by the discovery co
                 Step(
                     name="bait",
                     action="run_bait_campaign",
-                    params={"lure_id": "honey-trap-alpha"},
+                    params={"lure_id": scenario.PRIMARY_BAIT_PROFILE},
                 ),
                 Step(
                     name="allocate",
@@ -192,7 +191,7 @@ class MissionProvider:  # noqa: N801 — class name is fixed by the discovery co
     def execute(self, plan: MissionPlan) -> MissionOutcome:
         """Run the six pure engines deterministically and report results."""
         # 1. Entrapment: a fixed lure evaluated and its campaign run.
-        lure = generate_bait_profile("honey-trap-alpha", seed=scenario.SEED)
+        lure = generate_bait_profile(scenario.PRIMARY_BAIT_PROFILE, seed=scenario.SEED)
         campaign = run_bait_campaign(
             lure, engagement_threshold=scenario.ENGAGEMENT_THRESHOLD
         )
@@ -215,8 +214,10 @@ class MissionProvider:  # noqa: N801 — class name is fixed by the discovery co
             seed=scenario.SEED,
         )
         envelope = np.abs(np.asarray(channel["captured_samples"], dtype=np.float64))
-        threshold = float(np.mean(envelope)) * 0.5
-        bursts = segment_bursts(envelope, threshold=threshold, min_gap=1)
+        threshold = float(np.mean(envelope)) * scenario.BURST_THRESHOLD_FRACTION
+        bursts = segment_bursts(
+            envelope, threshold=threshold, min_gap=scenario.BURST_MIN_GAP
+        )
         # 4. Direction finding: TDOA measurements + Gauss-Newton estimate.
         pairs, tdoa = tdoa_measurements(
             scenario.TDOA_RECEIVERS,
@@ -270,12 +271,13 @@ class MissionProvider:  # noqa: N801 — class name is fixed by the discovery co
             "handoff_state": green.state.value,
             "handoff_path": green.path,
             "red_path_state": red.state.value,
+            "confirm_code": green.confirm_code,
         }
         success = (
             bool(channel["recovered_exact"])
             and green.state.value == "handoff"
-            and tdoa_error < 0.5
-            and schedule.scheduled_count >= 1
+            and tdoa_error < scenario.TDOA_SUCCESS_MAX_ERROR
+            and schedule.scheduled_count >= scenario.SCHEDULE_SUCCESS_MIN_COUNT
         )
         return MissionOutcome(
             success=success,
@@ -283,7 +285,7 @@ class MissionProvider:  # noqa: N801 — class name is fixed by the discovery co
             provenance=Provenance(
                 package_version=_PACKAGE_VERSION,
                 seed=scenario.SEED,
-                input_hash="lures-mission-input-v2",
+                input_hash=scenario.INPUT_HASH,
                 wall_time_s=0.0,
             ),
         )

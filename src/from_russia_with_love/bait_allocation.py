@@ -140,22 +140,25 @@ def greedy_allocate(
     Sorts by ``bite_value / lure_cost`` descending (ties by insertion order)
     and takes each target while budget remains. Never better than the exact
     solver: ``exact.expected_value >= greedy.expected_value`` always holds.
+
+    Indices are sorted rather than the records themselves, so two
+    value-identical targets stay individually addressable and the insertion
+    order tie-break is exact (the same idiom ``courier_schedule`` uses).
     """
     validate_targets(targets, budget)
     if not (0.0 <= lure_strength <= 1.0):
         raise ValueError("lure_strength must be in [0, 1]")
 
-    ranked = sorted(
-        targets,
-        key=lambda t: (
-            bite_value(t, lure_strength) / float(t.lure_cost),
-            -_index(targets, t),
+    order = sorted(
+        range(len(targets)),
+        key=lambda i: (
+            -bite_value(targets[i], lure_strength) / float(targets[i].lure_cost)
         ),
-        reverse=True,
     )
     remaining = budget
     chosen: list[Target] = []
-    for target in ranked:
+    for index in order:
+        target = targets[index]
         if target.lure_cost <= remaining:
             chosen.append(target)
             remaining -= target.lure_cost
@@ -166,11 +169,3 @@ def greedy_allocate(
         total_targets=len(targets),
         total_budget=budget,
     )
-
-
-def _index(targets: tuple[Target, ...], target: Target) -> int:
-    """Insertion index of ``target`` (stable tie-break key)."""
-    for position, candidate in enumerate(targets):
-        if candidate is target:
-            return position
-    return len(targets)

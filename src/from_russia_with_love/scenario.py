@@ -21,6 +21,8 @@ __all__ = [
     "ALLOC_LURE_STRENGTH",
     "ALLOC_TARGETS",
     "BAIT_PROFILE_IDS",
+    "BURST_MIN_GAP",
+    "BURST_THRESHOLD_FRACTION",
     "CALL_SIGNS",
     "CHALLENGE",
     "CIPHERS",
@@ -30,15 +32,20 @@ __all__ = [
     "GREEDY_WITNESS_LURE_STRENGTH",
     "GREEDY_WITNESS_TARGETS",
     "HANDOFF_CALL_SIGN",
+    "INPUT_HASH",
     "OBJECTIVES",
     "PLAINTEXT",
+    "PRIMARY_BAIT_PROFILE",
     "RENDEZVOUS",
     "SCHEDULE_START",
+    "SCHEDULE_SUCCESS_MIN_COUNT",
+    "SCHEDULE_WITNESS",
     "SEED",
     "SNR_DB",
     "TDOA_NOISE_STD",
     "TDOA_RECEIVERS",
     "TDOA_SPEED",
+    "TDOA_SUCCESS_MAX_ERROR",
     "TDOA_TRANSMITTER",
     "TDOA_SEED",
 ]
@@ -83,8 +90,13 @@ CIPHERS = (CipherLayer(key=b"VALENKA", seed=3), CipherLayer(key=b"GRANT", seed=5
 SNR_DB = 80.0
 
 # --- Entrapment / bait allocation -------------------------------------------
+#: The primary lure profile the mission actually runs and evaluates. This is a
+#: named constant (not ``BAIT_PROFILE_IDS[0]``) so that mission.py,
+#: manuscript_variables.py and the plan() step all agree on which profile the
+#: published {{LURES_BITE_PROBABILITY}} describes.
+PRIMARY_BAIT_PROFILE = "honey-trap-alpha"
 BAIT_PROFILE_IDS: tuple[str, ...] = (
-    "honey-trap-alpha",
+    PRIMARY_BAIT_PROFILE,
     "relay-decoy-7",
     "cipher-clerk-config-3",
 )
@@ -144,3 +156,37 @@ RENDEZVOUS: tuple[Rendezvous, ...] = (
     Rendezvous("M5", earliest=8.0, latest=14.0, duration=1.0),
 )
 SCHEDULE_START = 0.0
+
+# --- Mission execution contract ---------------------------------------------
+# The four numbers below are the *success gate* of the mission and the burst
+# segmentation of the intercepted channel. They were previously bare literals
+# duplicated in mission.py and manuscript_variables.py; naming them here binds
+# the executed mission to the published tokens and the declared success
+# criteria.
+
+#: The energy-envelope burst threshold is this fraction of the mean envelope.
+BURST_THRESHOLD_FRACTION = 0.5
+#: Two bursts separated by at most this many silent samples are merged.
+BURST_MIN_GAP = 1
+#: A TDOA localisation is a success when its error is below this (coord units).
+TDOA_SUCCESS_MAX_ERROR = 0.5
+#: A courier schedule is a success when it completes at least this many meets.
+SCHEDULE_SUCCESS_MIN_COUNT = 1
+#: Hand-versioned provenance string for the executed mission input. This is a
+#: committed scenario fact (like the seed) so the provenance record is
+#: reproducible; bump it deliberately when the input contract changes.
+INPUT_HASH = "lures-mission-input-v2"
+
+# --- Courier scheduling: witness instance (E1) ------------------------------
+# A *witness* rendezvous set on which the earliest-deadline-first heuristic is
+# strictly worse than the exact solver. The canonical RENDEZVOUS does not
+# separate the two — the heuristic reaches the optimum there — so the
+# manuscript's scheduling-separation claim is measured on this instance
+# instead of on a tie. A long, slack window (latest feasible start 0.0) sorts
+# first and crowds out two short meets that together score higher: heuristic
+# 1, exact optimum 2.
+SCHEDULE_WITNESS: tuple[Rendezvous, ...] = (
+    Rendezvous("long", earliest=0.0, latest=10.0, duration=10.0),
+    Rendezvous("short-a", earliest=0.0, latest=2.0, duration=1.0),
+    Rendezvous("short-b", earliest=2.0, latest=4.0, duration=1.0),
+)

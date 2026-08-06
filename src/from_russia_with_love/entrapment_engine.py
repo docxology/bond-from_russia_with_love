@@ -31,6 +31,7 @@ from dataclasses import dataclass
 from enum import Enum
 
 __all__ = [
+    "BITE_STEEPNESS",
     "BaitProfile",
     "TrapStage",
     "TrapStateMachine",
@@ -41,6 +42,14 @@ __all__ = [
 
 #: Deterministic default seed (0 disables randomness — pure arithmetic).
 DEFAULT_SEED = 0
+
+#: Slope of the bounded logistic bite-probability surface. Larger values make
+#: the decision boundary sharper (the probability swings from near 0 to near 1
+#: over a narrower band of lure strength + susceptibility). It is a modelling
+#: choice, not a calibrated parameter — the manuscript says so explicitly —
+#: but it is named here so the docstring of :func:`bait_bite_probability` can
+#: reference it rather than bury an unexplained ``4.0`` inside an expression.
+BITE_STEEPNESS = 4.0
 
 _COVER_ROLES = (
     "wireless_relay_operator",
@@ -110,11 +119,10 @@ _TRANSITIONS: dict[tuple[TrapStage, str], TrapStage] = {
 def bait_bite_probability(lure_strength: float, susceptibility: float) -> float:
     """Bounded logistic model of how effective a lure is.
 
-    Returns a value in ``(0, 1)``: ``denominator = 1 + exp(-4*(strength +
-    susceptibility - 1))``. Higher lure strength and higher target
-    susceptibility both monotonically raise the bite probability, so the
-    model is strictly increasing in each argument — a real, differentiable
-    decision surface (no stochastic draws).
+    ``BITE_STEEPNESS * (strength + susceptibility - 1)``. Higher lure strength
+    and higher target susceptibility both monotonically raise the bite
+    probability, so the model is strictly increasing in each argument — a
+    real, differentiable decision surface (no stochastic draws).
     """
     for name, value in (
         ("lure_strength", lure_strength),
@@ -122,7 +130,7 @@ def bait_bite_probability(lure_strength: float, susceptibility: float) -> float:
     ):
         if not (0.0 <= value <= 1.0):
             raise ValueError(f"{name} must be in [0, 1]")
-    z = 4.0 * (lure_strength + susceptibility - 1.0)
+    z = BITE_STEEPNESS * (lure_strength + susceptibility - 1.0)
     return 1.0 / (1.0 + math.exp(-z))
 
 

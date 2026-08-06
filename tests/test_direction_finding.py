@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
+import math
+
 import pytest
 
 from from_russia_with_love.direction_finding import (
     Receiver,
+    crlb_error,
     estimate_position,
     localization_error,
     min_site_spacing,
@@ -187,3 +190,50 @@ def test_localisation_error_is_not_in_site_spacings() -> None:
     assert raw > 0.0
     assert raw / spacing == pytest.approx(raw / 20.0)
     assert raw != pytest.approx(raw / spacing)  # the two are not the same number
+
+
+def test_crlb_finite_and_positive_on_canonical() -> None:
+    # The Cramér–Rao bound for the canonical array + timing noise is a finite,
+    # strictly positive RMS in coordinate units.
+    bound = crlb_error(
+        TDOA_RECEIVERS, TDOA_TRANSMITTER, speed=TDOA_SPEED, noise_std=0.1
+    )
+    assert math.isfinite(bound)
+    assert bound > 0.0
+
+
+def test_crlb_scales_linearly_with_noise() -> None:
+    # The bound is noise_std * sqrt(trace((J^T J)^{-1})), so doubling the
+    # timing noise doubles the RMS bound exactly. This is a real property of
+    # the formula, not a coincidence of one draw.
+    lo = crlb_error(TDOA_RECEIVERS, TDOA_TRANSMITTER, speed=TDOA_SPEED, noise_std=0.01)
+    hi = crlb_error(TDOA_RECEIVERS, TDOA_TRANSMITTER, speed=TDOA_SPEED, noise_std=0.2)
+    assert lo < hi
+    assert hi / lo == pytest.approx(20.0, rel=1e-9)
+
+
+def test_crlb_validation() -> None:
+    with pytest.raises(ValueError):
+        crlb_error(TDOA_RECEIVERS, TDOA_TRANSMITTER, speed=0.0, noise_std=0.1)
+    with pytest.raises(ValueError):
+        crlb_error(TDOA_RECEIVERS, TDOA_TRANSMITTER, noise_std=0.0)
+    with pytest.raises(ValueError):
+        crlb_error(
+            (Receiver("A", (0.0, 0.0)), Receiver("B", (1.0, 0.0))),
+            (0.5, 0.5),
+            noise_std=0.1,
+        )
+
+
+def test_crlb_degenerate_geometry_is_infinite() -> None:
+    # Collinear receivers with the transmitter exactly on their line make the
+    # Fisher information matrix singular: no finite accuracy is achievable,
+    # and the bound must say so (inf) rather than raising or returning a
+    # finite "confidence".
+    collinear = (
+        Receiver("A", (0.0, 0.0)),
+        Receiver("B", (1.0, 0.0)),
+        Receiver("C", (2.0, 0.0)),
+        Receiver("D", (3.0, 0.0)),
+    )
+    assert math.isinf(crlb_error(collinear, (1.5, 0.0), noise_std=0.1))

@@ -13,6 +13,7 @@ from pathlib import Path
 import numpy as np
 from matplotlib import pyplot as plt
 
+from from_russia_with_love import scenario
 from from_russia_with_love.entrapment_engine import (
     bait_bite_probability,
     generate_bait_profile,
@@ -20,10 +21,10 @@ from from_russia_with_love.entrapment_engine import (
 
 __all__ = ["plot_lure_surface"]
 
-_LURES = ("honey-trap-alpha", "relay-decoy-7", "cipher-clerk-config-3")
+_LURES = scenario.BAIT_PROFILE_IDS
 
 
-def plot_lure_surface(out_path: Path, *, seed: int = 11) -> Path:
+def plot_lure_surface(out_path: Path, *, seed: int = scenario.SEED) -> Path:
     """Write the lure-effectiveness surface PNG to ``out_path`` and return it."""
     strength = np.linspace(0.0, 1.0, 120)
     susceptibility = np.linspace(0.0, 1.0, 120)

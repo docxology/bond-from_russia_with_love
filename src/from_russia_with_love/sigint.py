@@ -87,8 +87,6 @@ def encipher(data: bytes, layers: tuple[CipherLayer, ...]) -> bytes:
     """Layered XOR encryption of ``data`` by applying each layer in order."""
     result = bytes(data)
     for layer in layers:
-        if layer.key is None:
-            raise ValueError("a cipher layer must declare a key")
         keystream = derive_keystream(layer.key, len(result), layer.seed)
         result = bytes(
             b ^ int(k) % _SYMBOL_WIDTH for b, k in zip(result, keystream, strict=True)
@@ -100,8 +98,6 @@ def decipher(data: bytes, layers: tuple[CipherLayer, ...]) -> bytes:
     """Layered XOR decryption — reverse the layers of :func:`encipher`."""
     result = bytes(data)
     for layer in reversed(layers):
-        if layer.key is None:
-            raise ValueError("a cipher layer must declare a key")
         keystream = derive_keystream(layer.key, len(result), layer.seed)
         result = bytes(
             b ^ int(k) % _SYMBOL_WIDTH for b, k in zip(result, keystream, strict=True)
@@ -170,10 +166,19 @@ def measure_snr_db(samples: np.ndarray, true_symbols: np.ndarray) -> float:
 
 @dataclass(frozen=True)
 class CipherLayer:
-    """One encryption layer: an XOR key and the seed of its keystream."""
+    """One encryption layer: an XOR key and the seed of its keystream.
 
-    key: bytes | None = None
+    ``key`` is required at construction time (there is no functional keyless
+    layer): a missing or empty key raises ``ValueError`` here, where the caller
+    can see it — not later, silently, inside ``encipher``/``decipher``.
+    """
+
+    key: bytes
     seed: int = _DEFAULT_SEED
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.key, bytes) or len(self.key) == 0:
+            raise ValueError("a cipher layer must declare a non-empty key")
 
 
 def traffic_profile(symbols: np.ndarray) -> dict[str, object]:

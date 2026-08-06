@@ -57,11 +57,17 @@ def test_encipher_decipher_roundtrip() -> None:
     assert decipher(encrypted, layers) == data
 
 
-def test_encipher_requires_key() -> None:
-    with pytest.raises(ValueError):
-        encipher(b"x", (CipherLayer(key=None),))
-    with pytest.raises(ValueError):
-        decipher(b"x", (CipherLayer(key=None),))
+def test_cipher_layer_requires_key_at_construction() -> None:
+    # C5: a keyless layer is rejected when it is built, not silently deep
+    # inside encipher/decipher. This is the positive control — if the
+    # required-key guard were removed, construction would succeed and the
+    # ValueError would never fire. ``key=None``/``b""`` bypass static typing,
+    # which is exactly the runtime shape that used to slip through.
+    with pytest.raises(ValueError, match="non-empty key"):
+        CipherLayer(key=None)  # type: ignore[arg-type]
+    with pytest.raises(ValueError, match="non-empty key"):
+        CipherLayer(key=b"")
+    assert CipherLayer(key=b"VALENKA", seed=3).key == b"VALENKA"
 
 
 def test_capture_noise_free_seed_zero() -> None:

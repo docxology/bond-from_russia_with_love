@@ -52,6 +52,7 @@ __all__ = [
     "Position",
     "Receiver",
     "TdoaEstimate",
+    "crlb_error",
     "estimate_position",
     "localization_error",
     "min_site_spacing",
@@ -221,6 +222,49 @@ def min_site_spacing(receivers: tuple[Receiver, ...]) -> float:
         for i in range(len(receivers))
         for j in range(i + 1, len(receivers))
     )
+
+
+def crlb_error(
+    receivers: tuple[Receiver, ...],
+    transmitter: Position,
+    *,
+    speed: float = 1.0,
+    noise_std: float,
+) -> float:
+    """Cramér–Rao lower bound (RMS, coordinate units) on the position error.
+
+    For TDOA localisation with independent, identically distributed Gaussian
+    timing noise of standard deviation ``noise_std`` on each pairwise
+    measurement, the Fisher information matrix is ``J^T J / noise_std**2``,
+    where ``J`` is the Jacobian of the pair-TDOA functions at the true
+    transmitter position. Inverting it gives the Cramér–Rao covariance bound,
+    and the RMS error bound is the square root of its trace. This is the
+    theoretical best achievable RMS position error under the model — an
+    honest, geometry-driven uncertainty floor that the estimator's realised
+    error (§3.3) can be compared against.
+
+    Requires ``noise_std > 0`` (the bound is meaningless at zero noise). A
+    degenerate geometry whose Fisher information matrix is singular — e.g.
+    collinear receivers — carries an *infinite* accuracy bound, which is
+    returned as ``float('inf')`` rather than raising: the model is honest
+    that such an array yields no finite localisation accuracy (Torrieri 1984).
+    """
+    if len(receivers) < _MIN_RECEIVERS:
+        raise ValueError(f"at least {_MIN_RECEIVERS} receivers are required")
+    if speed <= 0.0:
+        raise ValueError("speed must be positive")
+    if noise_std <= 0.0:
+        raise ValueError("noise_std must be > 0 to bound the estimate")
+    pairs, _ = _pair_tdoa(transmitter, receivers, speed)
+    jacobian = _jacobian(
+        np.array(transmitter, dtype=np.float64), receivers, pairs, speed
+    )
+    info = (jacobian.T @ jacobian) / (noise_std**2)
+    try:
+        covariance = np.linalg.inv(info)
+    except np.linalg.LinAlgError:
+        return float("inf")
+    return float(math.sqrt(covariance[0, 0] + covariance[1, 1]))
 
 
 def _centroid(receivers: tuple[Receiver, ...]) -> Position:

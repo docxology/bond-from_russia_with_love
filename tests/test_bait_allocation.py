@@ -120,3 +120,30 @@ def test_canonical_allocation_non_trivial() -> None:
     result = allocate_lures(ALLOC_TARGETS, ALLOC_BUDGET, ALLOC_LURE_STRENGTH)
     assert result.chosen  # non-empty: budget is put to work
     assert result.expected_value > 0.0
+
+
+def test_greedy_tie_break_is_deterministic_and_ordered() -> None:
+    """C4: equal profit/weight ratio breaks by insertion order, repeatably.
+
+    Regression guard: the old tie-break keyed on an identity ``is`` scan with
+    an unreachable fallback; the current implementation sorts indices, so two
+    value-identical targets stay individually addressable and the earlier one
+    wins deterministically.
+    """
+    duplicates = (
+        Target("first", susceptibility=0.5, value=8.0, lure_cost=2),
+        Target("second", susceptibility=0.5, value=8.0, lure_cost=2),
+    )
+    first = greedy_allocate(duplicates, 2, ALLOC_LURE_STRENGTH)
+    second = greedy_allocate(duplicates, 2, ALLOC_LURE_STRENGTH)
+    assert first == second
+    assert first.chosen == (duplicates[0],)
+    assert first.budget_used == 2
+
+
+def test_greedy_handles_budget_smaller_than_any_cost() -> None:
+    # A budget below the cheapest lure leaves nothing chosen but stays valid.
+    result = greedy_allocate(ALLOC_TARGETS, 0, ALLOC_LURE_STRENGTH)
+    assert result.chosen == ()
+    assert result.budget_used == 0
+    assert result.expected_value == 0.0

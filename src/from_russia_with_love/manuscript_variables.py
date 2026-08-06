@@ -30,6 +30,7 @@ from pathlib import Path
 import numpy as np
 import yaml
 
+from from_russia_with_love import __version__ as PACKAGE_VERSION  # noqa: N812
 from from_russia_with_love import scenario
 from from_russia_with_love.bait_allocation import allocate_lures, greedy_allocate
 from from_russia_with_love.courier_schedule import (
@@ -37,6 +38,7 @@ from from_russia_with_love.courier_schedule import (
     schedule_handoffs,
 )
 from from_russia_with_love.direction_finding import (
+    crlb_error,
     estimate_position,
     localization_error,
     min_site_spacing,
@@ -56,8 +58,6 @@ __all__ = [
     "manuscript_date",
     "validate_mission_config",
 ]
-
-PACKAGE_VERSION = "0.1.0"
 
 
 def load_mission_config(project_root: Path) -> dict[str, object]:
@@ -122,6 +122,20 @@ def validate_mission_config(config: dict[str, object]) -> None:
     are compared.
     """
     mission = config.get("mission")
+    # The package version is checked first: it is independent of whether a
+    # ``mission`` block exists. ``paper.version`` feeds {{BOND_VERSION}}, so it
+    # must agree with ``__init__.__version__`` (which mission.py's provenance
+    # also reads).
+    paper = config.get("paper")
+    if (
+        isinstance(paper, dict)
+        and "version" in paper
+        and paper["version"] != PACKAGE_VERSION
+    ):
+        raise ValueError(
+            f"manuscript/config.yaml paper.version={paper['version']!r} "
+            f"disagrees with the package version {PACKAGE_VERSION!r}"
+        )
     if mission is None:
         return
     if not isinstance(mission, dict):
@@ -171,7 +185,7 @@ def generate_variables(
         keywords = []
 
     # Entrapment + allocation.
-    lure = generate_bait_profile("honey-trap-alpha", seed=scenario.SEED)
+    lure = generate_bait_profile(scenario.PRIMARY_BAIT_PROFILE, seed=scenario.SEED)
     campaign = run_bait_campaign(
         lure, engagement_threshold=scenario.ENGAGEMENT_THRESHOLD
     )
@@ -208,8 +222,10 @@ def generate_variables(
         seed=scenario.SEED,
     )
     envelope = np.abs(np.asarray(channel["captured_samples"], dtype=np.float64))
-    threshold = float(np.mean(envelope)) * 0.5
-    bursts = segment_bursts(envelope, threshold=threshold, min_gap=1)
+    threshold = float(np.mean(envelope)) * scenario.BURST_THRESHOLD_FRACTION
+    bursts = segment_bursts(
+        envelope, threshold=threshold, min_gap=scenario.BURST_MIN_GAP
+    )
 
     # Direction finding.
     pairs, tdoa = tdoa_measurements(
@@ -224,6 +240,15 @@ def generate_variables(
     )
     tdoa_error = localization_error(estimate.position, scenario.TDOA_TRANSMITTER)
     site_spacing = min_site_spacing(scenario.TDOA_RECEIVERS)
+    # The Cramér–Rao lower-bound RMS position error for the same geometry and
+    # timing noise — the theoretical best achievable accuracy, the honest
+    # uncertainty floor the realised error (§3.3) is compared against.
+    crlb = crlb_error(
+        scenario.TDOA_RECEIVERS,
+        scenario.TDOA_TRANSMITTER,
+        speed=scenario.TDOA_SPEED,
+        noise_std=scenario.TDOA_NOISE_STD,
+    )
 
     # Courier schedule (heuristic) scored against the exact optimum + handoff.
     schedule = schedule_handoffs(
@@ -231,6 +256,15 @@ def generate_variables(
     )
     schedule_optimum = max_completed_handoffs(
         scenario.RENDEZVOUS, start_time=scenario.SCHEDULE_START
+    )
+    # The canonical RENDEZVOUS does not separate the solvers (the heuristic
+    # reaches the optimum there); the witness instance is where the gap is
+    # strictly positive, mirroring the allocation witness in §3.1.
+    witness_schedule = schedule_handoffs(
+        scenario.SCHEDULE_WITNESS, start_time=scenario.SCHEDULE_START
+    )
+    witness_schedule_optimum = max_completed_handoffs(
+        scenario.SCHEDULE_WITNESS, start_time=scenario.SCHEDULE_START
     )
     allocation_utilization = 100.0 * allocation.budget_used / scenario.ALLOC_BUDGET
     handoff = HandoffProtocol(
@@ -296,6 +330,8 @@ def generate_variables(
         # manuscript previously labelled the first one with the second's unit.
         "LURES_TDOA_ERROR": f"{tdoa_error:.3f}",
         "LURES_TDOA_ERROR_SPACINGS": f"{tdoa_error / site_spacing:.4f}",
+        "LURES_TDOA_CRLB": f"{crlb:.4f}",
+        "LURES_TDOA_ERROR_ABOVE_CRLB": str(bool(tdoa_error > crlb)),
         "LURES_TDOA_ITERATIONS": estimate.iterations,
         "LURES_TDOA_CONVERGED": str(bool(estimate.converged)),
         "LURES_SCHEDULE_COUNT": schedule.scheduled_count,
@@ -303,6 +339,12 @@ def generate_variables(
         "LURES_SCHEDULE_GAP": schedule_optimum - schedule.scheduled_count,
         "LURES_SCHEDULE_FINISH": f"{schedule.finish_time:.1f}",
         "LURES_SCHEDULE_TOTAL": len(scenario.RENDEZVOUS),
+        "LURES_SCHEDULE_WITNESS_TOTAL": len(scenario.SCHEDULE_WITNESS),
+        "LURES_SCHEDULE_WITNESS_COUNT": witness_schedule.scheduled_count,
+        "LURES_SCHEDULE_WITNESS_OPTIMUM": witness_schedule_optimum,
+        "LURES_SCHEDULE_WITNESS_GAP": (
+            witness_schedule_optimum - witness_schedule.scheduled_count
+        ),
         "LURES_RED_PATH_STATE": red.state.value,
         "LURES_HANDOFF_STATE": handoff.state.value,
         "LURES_CONFIRM_CODE": handoff.confirm_code,

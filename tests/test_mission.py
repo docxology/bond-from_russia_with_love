@@ -147,3 +147,41 @@ def test_import_without_bond_api_fallback() -> None:
         assert "bond_api" not in text and "bond-api" not in text, (
             f"{mod} must not import bond_api"
         )
+
+
+def test_mission_execute_agrees_with_manuscript_variables() -> None:
+    """V1: the adapter and the token generator bind to the same engines.
+
+    ``MissionProvider.execute`` and ``generate_variables`` each run the six
+    engines through their own call sequence. This test computes both and
+    asserts field-by-field equality on every overlapping published quantity, so
+    editing one call site alone (e.g. the burst factor in ``mission.py``)
+    makes the manuscript token disagree with the executed mission and this test
+    goes red.
+    """
+    from pathlib import Path
+
+    from from_russia_with_love.manuscript_variables import generate_variables
+
+    project_root = Path(__file__).resolve().parent.parent
+    provider = MissionProvider()
+    outcome = provider.execute(provider.plan(provider.brief()))
+    r = outcome.results
+    v = generate_variables(project_root)
+
+    assert v["LURES_BITE_PROBABILITY"] == f"{r['bite_probability']:.3f}"
+    assert v["LURES_FINAL_STAGE"] == str(r["final_stage"])
+    assert v["LURES_ALLOC_VALUE"] == f"{r['allocation_value']:.3f}"
+    assert v["LURES_GREEDY_VALUE"] == f"{r['greedy_value']:.3f}"
+    assert v["LURES_RECOVERED_EXACT"] == str(bool(r["recovered_exact"]))
+    assert v["LURES_EMPIRICAL_SNR_DB"] == f"{r['empirical_snr_db']:.1f}"
+    assert v["LURES_BURST_COUNT"] == r["burst_count"]
+    assert v["LURES_TDOA_ERROR"] == f"{r['tdoa_error']:.3f}"
+    assert v["LURES_TDOA_ITERATIONS"] == r["tdoa_iterations"]
+    assert v["LURES_TDOA_CONVERGED"] == str(bool(r["tdoa_converged"]))
+    assert v["LURES_SCHEDULE_COUNT"] == r["schedule_count"]
+    assert v["LURES_SCHEDULE_OPTIMUM"] == r["schedule_optimum"]
+    assert v["LURES_SCHEDULE_GAP"] == r["schedule_gap"]
+    assert v["LURES_HANDOFF_STATE"] == str(r["handoff_state"])
+    assert v["LURES_RED_PATH_STATE"] == str(r["red_path_state"])
+    assert v["LURES_CONFIRM_CODE"] == r["confirm_code"]

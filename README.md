@@ -105,7 +105,8 @@ uv run pytest tests/ --cov=src --cov-fail-under=90
 uv run ruff check src/ scripts/ tests/
 uv run ruff format --check src/ scripts/ tests/
 uv run mypy src/ scripts/
-rg -n "template[_]code_project" .        # expect zero hits
+uv run python scripts/00_preflight.py      # protocol + pure-core sanity (no bond-api needed)
+rg -n "template[_]code_project" .          # expect zero hits
 ```
 
 The coverage gate is a 90% line-and-branch floor on `src/`; the suite runs

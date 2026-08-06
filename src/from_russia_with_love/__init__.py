@@ -6,6 +6,13 @@ Exposes the pure domain core (importable without bond-api) plus the
 
 from __future__ import annotations
 
+#: Single source of truth for the package version. mission.py
+#: (``_PACKAGE_VERSION``), manuscript_variables.py (``PACKAGE_VERSION``) and
+#: the manuscript's ``{{BOND_VERSION}}`` token all read this value, and
+#: ``test_all_version_copies_agree`` checks that the pyproject, CITATION.cff,
+#: codemeta.json, .zenodo.json and manuscript/config.yaml copies match it.
+__version__ = "0.1.0"
+
 from from_russia_with_love.bait_allocation import (
     AllocationResult,
     Target,
@@ -24,6 +31,7 @@ from from_russia_with_love.courier_schedule import (
 from from_russia_with_love.direction_finding import (
     Receiver,
     TdoaEstimate,
+    crlb_error,
     estimate_position,
     localization_error,
     tdoa_measurements,
@@ -79,6 +87,7 @@ __all__ = [
     "bytes_to_symbols",
     "capture_with_noise",
     "challenge_confirm_code",
+    "crlb_error",
     "decipher",
     "decide_symbols",
     "derive_keystream",
