@@ -1,7 +1,8 @@
 # Agent Instructions — LURES (From Russia with Love, 1963)
 
 Mission codename **LURES** is a PROJECT BOND film package. Work ONLY inside
-this directory. This tree is **local-only** — there is no remote, never push.
+this directory. The tree is mirrored to the private remote
+`docxology/bond-from_russia_with_love` (default branch `main`).
 
 ## Operational constraints
 

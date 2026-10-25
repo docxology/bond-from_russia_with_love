@@ -13,7 +13,7 @@
       "identifier": "https://orcid.org/0000-0001-6232-9096"
     }
   ],
-  "codeRepository": "local only — no remote",
+  "codeRepository": "https://github.com/docxology/bond-from_russia_with_love",
   "programmingLanguage": "Python",
   "keywords": ["entrapment playbook", "SIGINT interception", "defector handoff", "state machine"]
 }

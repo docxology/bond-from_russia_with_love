@@ -5,7 +5,8 @@ description: Build/maintain the LURES PROJECT BOND film package (entrapment, all
 
 # from_russia_with_love — LURES (From Russia with Love, 1963)
 
-PROJECT BOND film package, mission codename **LURES**. Local-only tree, no remote.
+PROJECT BOND film package, mission codename **LURES**. Private mirror:
+`docxology/bond-from_russia_with_love`, default branch `main`.
 
 ## Concepts
 

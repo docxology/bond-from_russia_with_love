@@ -2,7 +2,8 @@
 
 Mission codename **LURES** implements the operational concepts of *From Russia
 with Love* (1963) as a deterministic mission-software package in the PROJECT
-BOND suite. This tree is **local-only** — there is no remote, never push.
+BOND suite. The tree is versioned in the private mirror
+`docxology/bond-from_russia_with_love` (default branch `main`).
 
 ## The film, as a specification
 
@@ -90,8 +91,8 @@ dict.
 ## Getting started
 
 ```bash
-cd projects/working/bond/from_russia_with_love
-uv sync --extra dev            # wires the local bond-api path dependency
+cd /path/to/from_russia_with_love   # this package's root
+uv sync --extra dev            # wires the sibling bond-api path dependency (../bond-api)
 uv run pytest tests/ --cov=src --cov-fail-under=90
 uv run python scripts/00_preflight.py
 uv run python scripts/run_mission.py run "assess the LURES cover posture"
@@ -105,7 +106,7 @@ uv run pytest tests/ --cov=src --cov-fail-under=90
 uv run ruff check src/ scripts/ tests/
 uv run ruff format --check src/ scripts/ tests/
 uv run mypy src/ scripts/
-uv run python scripts/00_preflight.py      # protocol + pure-core sanity (no bond-api needed)
+uv run python scripts/00_preflight.py      # pure-core + wired-protocol sanity
 rg -n "template[_]code_project" .          # expect zero hits
 ```
 

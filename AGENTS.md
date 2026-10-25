@@ -15,7 +15,9 @@ before touching `tests/`.
 
 - Scope = EXACTLY this package directory. Never touch siblings, the bond root,
   or the template repo.
-- **Local-only**: there is no remote. Never push.
+- **Remote**: `origin` is the private mirror
+  `github.com/docxology/bond-from_russia_with_love`, default branch `main`.
+  Never force-push.
 - Path-scoped commits inside this package's own git repo only.
 - No mock framework — no `MagicMock`, `mocker.patch` or `unittest.mock`. Real
   data and real computation only.
@@ -34,8 +36,8 @@ before touching `tests/`.
 ## Build
 
 ```bash
-cd projects/working/bond/from_russia_with_love
-uv sync --extra dev     # wires the local bond-api path dependency
+cd /path/to/from_russia_with_love   # this package's root
+uv sync --extra dev     # wires the sibling bond-api path dependency (../bond-api)
 ```
 
 `bond-api` is consumed as a local path dependency declared under

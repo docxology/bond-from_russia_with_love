@@ -21,7 +21,7 @@ keywords:
 
 mission:
   codename: LURES
-  objectives: 3
+  objectives: 6
   bait_profiles: 3
   engagement_threshold: 0.5
   snr_db: 80.0

@@ -11,5 +11,9 @@ __pycache__/
 # Project-local virtualenvs
 .venv/
 
+# Tool caches
+.ruff_cache/
+.mypy_cache/
+
 # Regenerable artifacts — script smoke tests write here; keep tree clean
 output/

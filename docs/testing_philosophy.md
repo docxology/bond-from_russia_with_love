@@ -103,8 +103,8 @@ last run). Coverage is a floor, not the goal — the tests above matter more
 than the percentage.
 
 A small number of defensive numeric branches are deliberately left uncovered
-and documented rather than forced with artificial inputs: the singular-Jacobian
-and coincident-site guards in `direction_finding.py`, and the unreachable
-insertion-index fallback in `bait_allocation.py`. Forcing them would mean
-constructing states the public API cannot produce, which buys a percentage
-point and costs honesty about what is actually exercised.
+and documented rather than forced with artificial inputs: the non-finite-step,
+singular-normal-equation and coincident-site guards in `direction_finding.py`.
+Forcing them would mean constructing states the public API cannot produce,
+which buys a percentage point and costs honesty about what is actually
+exercised.
