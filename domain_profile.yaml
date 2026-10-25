@@ -19,8 +19,11 @@ review_gates:
   mypy: true
 
 source_policy:
-  local_only: true
-  no_remote: true
+  # Mirrored to the private GitHub remote (default branch main); not a public
+  # release, and never force-pushed.
+  local_only: false
+  no_remote: false
+  remote: "docxology/bond-from_russia_with_love"
   dependencies: ["bond-api (frozen protocol, path dependency)"]
 
 artifact_expectations:

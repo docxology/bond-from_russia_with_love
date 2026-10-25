@@ -9,8 +9,9 @@ from __future__ import annotations
 #: Single source of truth for the package version. mission.py
 #: (``_PACKAGE_VERSION``), manuscript_variables.py (``PACKAGE_VERSION``) and
 #: the manuscript's ``{{BOND_VERSION}}`` token all read this value, and
-#: ``test_all_version_copies_agree`` checks that the pyproject, CITATION.cff,
-#: codemeta.json, .zenodo.json and manuscript/config.yaml copies match it.
+#: ``test_declarative_version_copies_agree_with_package_version`` checks that
+#: the pyproject, CITATION.cff, codemeta.json, .zenodo.json and
+#: manuscript/config.yaml copies match it.
 __version__ = "0.1.0"
 
 from from_russia_with_love.bait_allocation import (

@@ -5,18 +5,25 @@ a deterministic mission-software package in the PROJECT BOND suite: six pure
 engines (entrapment playbook, 0/1-knapsack lure allocation, SIGINT channel
 interception, TDOA Gauss–Newton direction finding, courier-handoff scheduling,
 defector handoff protocol) behind the frozen `bond_api` `MissionProvider`
-adapter, plus a token-hydrated manuscript. **Verified state, measured
-2026-08-05 in this tree:** `uv run pytest tests/ --cov=src --cov-fail-under=90`
-→ **146 passed, 0 failed, 0 skipped, 99.25% line-and-branch coverage on
-`src/`** (Python 3.14.6, numpy 2.5.1, darwin); `ruff check`, `ruff format
---check` (27 files), `mypy src/ scripts/` (16 files) and
-`scripts/00_preflight.py` all clean; `rg -n "template[_]code_project" .` zero
-hits; `git status` clean. All four findings from the adversarial audit
-(`output/verify/from_russia_with_love.json`) are resolved and are **not**
-repeated below; the two residual limitations its remediation pass named are
-recorded under *Known limitations*.
+adapter, plus a token-hydrated manuscript. **Verified state** — test count,
+coverage and the lint/format/typecheck results are recorded in
+[`docs/_generated/COUNTS.md`](docs/_generated/COUNTS.md), regenerated from a
+real run rather than pinned in prose here. All four findings from the
+2026-08-05 adversarial audit are resolved, as is every correctness,
+verification and documentation item that audit left open (round-2 ledger at
+the end of this file); the residual limitations it named are recorded under
+*Known limitations*.
 
 ## Open work
+
+**Genuinely open: E2–E4** — suite integration blocked on the sibling
+`bond-utilities`, `bond-coordinator` and `bond-cli`/`bond-ops` packages; their
+specs are under *Extension* below. Everything else in this section — correctness
+C1–C5, verification V1–V3, documentation D1 and extension E1 — is **closed**:
+each fix and its evidence is recorded in the round-2 ledger at the end of this
+file. The text below is kept as the audit record of what was found on
+2026-08-05, not as pending work; its `file.py:line` references are as of that
+date and have shifted since.
 
 ### Correctness
 
@@ -185,13 +192,11 @@ output of `uv run python scripts/run_mission.py brief`.
 ## Known limitations (not bugs)
 
 - **The remaining uncovered code in `src/` is defensive and unreachable through
-  the public API**, documented rather than forced with artificial inputs:
-  `direction_finding.py:182` (singular normal-equation solve), `:273`
-  (non-finite step guard) and branch `175->190` (coincident
-  receiver/transmitter Jacobian guard), plus `bait_allocation.py:176` — that
-  last one is listed above as C4 because it is *removable*, not merely
-  unreachable. Measured this session: 3 missed statements, 4 partial branches,
-  99.25% total.
+  the public API**, documented rather than forced with artificial inputs. The
+  current list — which lines, which branches, and the measured total — is in
+  [`docs/_generated/COUNTS.md`](docs/_generated/COUNTS.md) § "Where the
+  uncovered lines are"; it is regenerated from a real run rather than restated
+  here, because line numbers shift as the engines change.
 - **The method-attribution gate is lexical, not semantic.**
   `tests/test_manuscript_variables.py:302` and `:322` scan for the specific
   retired Chan & Ho phrasings and for the presence of the correct
@@ -224,25 +229,28 @@ output of `uv run python scripts/run_mission.py brief`.
   n=18 0.30 s, n=20 1.17 s — the bound is adequate, not aspirational.
 - **`output/` is regenerable and git-ignored.** Rerun
   `scripts/z_generate_manuscript_variables.py` to reproduce
-  `output/data/manuscript_variables.json` (56 tokens) and both figures. Nothing
-  under `output/` is ever hand-edited.
+  `output/data/manuscript_variables.json` and both figures. Nothing under
+  `output/` is ever hand-edited.
 - **The pure core is kept `bond_api`-free by a source-reading test**
   (`tests/test_mission.py::test_import_without_bond_api_fallback`). Adding an
   infrastructure import to any of the seven pure modules fails the suite.
-- **This tree is local-only.** There is no remote; never push. Commits are
-  path-scoped to this package's own git repo.
+- **This tree is mirrored.** `origin` is the private remote
+  `docxology/bond-from_russia_with_love`, default branch `main`. Commits are
+  path-scoped to this package's own git repo; never force-push.
 
 ## Verification
 
-Run from `projects/working/bond/from_russia_with_love`. Expected outcomes are
-what this session actually observed.
+Run from this package's root. Every gate below must come back green; the
+measured test count, coverage and per-tool results from the last real run are
+recorded in [`docs/_generated/COUNTS.md`](docs/_generated/COUNTS.md) instead of
+being pinned here, so this block cannot go stale.
 
 ```bash
-uv sync --extra dev                                    # wires the local bond-api path dependency
-uv run pytest tests/ --cov=src --cov-fail-under=90     # 146 passed, 99.25% coverage
-uv run ruff check src/ scripts/ tests/                 # All checks passed!
-uv run ruff format --check src/ scripts/ tests/        # 27 files already formatted
-uv run mypy src/ scripts/                              # no issues in 16 source files
+uv sync --extra dev                                    # wires the sibling bond-api path dependency
+uv run pytest tests/ --cov=src --cov-fail-under=90     # all pass, >=90% coverage
+uv run ruff check src/ scripts/ tests/                 # clean
+uv run ruff format --check src/ scripts/ tests/        # clean
+uv run mypy src/ scripts/                              # clean
 uv run python scripts/00_preflight.py                  # preflight PASS
 rg -n "template[_]code_project" .                      # zero hits (exit 1)
 git status                                             # clean after your commit
