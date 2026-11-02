@@ -15,7 +15,7 @@ description = "LURES — entrapment/deception playbook engine, SIGINT channel in
 authors = [
     { name = "Daniel Ari Friedman", email = "daniel@activeinference.institute" }
 ]
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 # Floors unchanged this pass: an install cannot be resolved under the drive's
 # ~10-minute budget, so the currency bump is deferred rather than shipped
 # unverified. The sibling bond-api source below is a correctness fix.
