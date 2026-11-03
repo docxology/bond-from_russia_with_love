@@ -18,7 +18,7 @@
   comes from `manuscript/config.yaml`. Double-brace only: a single-brace `{TOKEN}` does not substitute.
 - **Coverage floor 90% line and branch on `src/`**; `ruff check`, `ruff format --check` and `mypy`
   clean on `src/` and `scripts/`.
-- **Publishing state as observed**: `origin` is the private mirror
+- **Publishing state as observed**: `origin` is
   `github.com/docxology/bond-from_russia_with_love`, default branch `main`; never force-push. The
   suite copy of this film under the BOND working tree has no remote of its own — that is a different
   tree, not a claim about this repository.
