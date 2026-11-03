@@ -328,13 +328,27 @@ _MISATTRIBUTION_PATTERNS = (
     r"hyperbolation \(@chan1994hyperbolic\)",
 )
 
+#: The phrasing each pattern above was written to catch, verbatim — the wording
+#: that was actually retired. A sample is not a paraphrase: a paraphrased sample
+#: reports a live pattern as dead, and a check that reads as dead gets deleted
+#: instead of repaired.
+_CATCHED_PHRASINGS = {
+    r"following the estimator of Chan": "following the estimator of Chan",
+    r"geolocation \(Chan (&|and) Ho": "geolocation (Chan & Ho 1994)",
+    r"\(Chan (&|and) Ho 1994 hyperbolic location\)": "(Chan & Ho 1994 hyperbolic location)",
+    r"hyperbolation \(@chan1994hyperbolic\)": "hyperbolation (@chan1994hyperbolic)",
+}
+
 
 def test_gauss_newton_solver_is_not_attributed_to_chan_and_ho() -> None:
     """Guard the corrected method attribution against regression.
 
-    Positive control for this gate: re-insert any of the retired phrasings
-    (e.g. put "geolocation (Chan & Ho 1994)" back in the README row) and this
-    test fails, naming the file.
+    Two executed controls sit below this gate:
+    ``test_the_attribution_gate_can_fail`` proves each pattern still catches the
+    phrasing it was written for, and
+    ``test_the_corrected_attribution_is_not_flagged`` proves the corrected wording
+    is not over-flagged. Re-inserting a retired phrasing into any scanned source
+    still fails this test, naming the file.
     """
     offenders: list[str] = []
     for relative in _ATTRIBUTION_SOURCES:
@@ -347,6 +361,46 @@ def test_gauss_newton_solver_is_not_attributed_to_chan_and_ho() -> None:
         "estimator (Foy 1976), not Chan & Ho's closed-form estimator: "
         f"{offenders}"
     )
+
+
+def test_every_misattribution_pattern_has_a_caught_phrasing() -> None:
+    """The controls below cannot fall out of step with the pattern list."""
+    assert set(_CATCHED_PHRASINGS) == set(_MISATTRIBUTION_PATTERNS), (
+        "a misattribution pattern was added or removed without recording the "
+        "phrasing it is meant to catch"
+    )
+
+
+@pytest.mark.parametrize(("pattern", "phrasing"), sorted(_CATCHED_PHRASINGS.items()))
+def test_the_attribution_gate_can_fail(pattern: str, phrasing: str) -> None:
+    """Positive control: each pattern still catches the phrasing it was written for."""
+    assert re.search(pattern, phrasing), (
+        f"{pattern!r} no longer catches {phrasing!r} — the gate above would pass "
+        "by finding nothing rather than by finding nothing wrong"
+    )
+
+
+def test_the_corrected_attribution_is_not_flagged() -> None:
+    """The other direction, over the wording this repository actually carries.
+
+    The negative sample is read from the sources the gate scans, so this cannot
+    pass against a copy that has drifted away from the corrected wording.
+    """
+    corrected = [
+        line
+        for relative in _ATTRIBUTION_SOURCES
+        for line in (PROJECT_ROOT / relative).read_text(encoding="utf-8").splitlines()
+        if "does not implement" in line
+    ]
+    assert corrected, (
+        "no scanned source states that the closed-form estimator is not "
+        "implemented — the corrected attribution has gone missing"
+    )
+    for line in corrected:
+        for pattern in _MISATTRIBUTION_PATTERNS:
+            assert not re.search(pattern, line), (
+                f"{pattern!r} flags the corrected wording: {line.strip()!r}"
+            )
 
 
 def test_implemented_solver_cites_the_iterative_estimator() -> None:
