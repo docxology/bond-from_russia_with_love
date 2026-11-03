@@ -15,7 +15,7 @@ before touching `tests/`.
 
 - Scope = EXACTLY this package directory. Never touch siblings, the bond root,
   or the template repo.
-- **Remote**: `origin` is the private mirror
+- **Remote**: `origin` is
   `github.com/docxology/bond-from_russia_with_love`, default branch `main`.
   Never force-push.
 - Path-scoped commits inside this package's own git repo only.

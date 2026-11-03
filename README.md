@@ -2,7 +2,7 @@
 
 Mission codename **LURES** implements the operational concepts of *From Russia
 with Love* (1963) as a deterministic mission-software package in the PROJECT
-BOND suite. The tree is versioned in the private mirror
+BOND suite. The tree is versioned at
 `docxology/bond-from_russia_with_love` (default branch `main`).
 
 ## The film, as a specification
