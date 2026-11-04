@@ -246,7 +246,7 @@ recorded in [`docs/_generated/COUNTS.md`](docs/_generated/COUNTS.md) instead of
 being pinned here, so this block cannot go stale.
 
 ```bash
-uv sync --extra dev                                    # wires the sibling bond-api path dependency
+uv sync --extra dev                                    # dev tools; bond-api is vendored in the tree
 uv run pytest tests/ --cov=src --cov-fail-under=90     # all pass, >=90% coverage
 uv run ruff check src/ scripts/ tests/                 # clean
 uv run ruff format --check src/ scripts/ tests/        # clean

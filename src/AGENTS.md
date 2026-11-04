@@ -7,7 +7,7 @@
 ## Rules
 
 - **The engines are pure**: no `infrastructure.*` and no `bond_api` imports, so the package's core
-  imports and tests without the sibling checkout. `mission.py` is the adapter to the frozen
+  imports and tests without the vendored copy. `mission.py` is the adapter to the frozen
   `bond_api` protocol.
 - **The adapter's public surface is frozen** — `film`, the five stages, `register_gadgets` and
   `GADGET_REGISTRY` are consumed by bond-cli, the coordinator and the orchestrator.

@@ -18,7 +18,7 @@ authors = [
 requires-python = ">=3.11"
 # Floors unchanged this pass: an install cannot be resolved under the drive's
 # ~10-minute budget, so the currency bump is deferred rather than shipped
-# unverified. The sibling bond-api source below is a correctness fix.
+# unverified. The vendored bond-api source below is a correctness fix.
 dependencies = [
     "numpy>=1.24.0",
     "matplotlib>=3.7.0",
@@ -36,7 +36,8 @@ dev = [
 ]
 
 [tool.uv.sources]
-# Sibling bond-api checkout (same layout in the bond working tree: ../bond-api).
+# Vendored copy of the frozen protocol; scripts/vendor.py --check keeps it
+# byte-identical to upstream.
 bond-api = { path = "vendor/bond-api" }
 
 [tool.pytest.ini_options]

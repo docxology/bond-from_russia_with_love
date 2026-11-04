@@ -15,5 +15,5 @@
 - **`output/` is regenerable and git-ignored**; never hand-edit anything in it.
 - **Scope is this package directory**: do not write to siblings, the bond root or the template
   repository.
-- `mission.py`, `run_mission.py`, `00_preflight.py` and `tests/test_mission.py` need the sibling
+- `mission.py`, `run_mission.py`, `00_preflight.py` and `tests/test_mission.py` need the vendored
   `bond-api`; the pure core and its tests do not.
