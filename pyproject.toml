@@ -37,7 +37,7 @@ dev = [
 
 [tool.uv.sources]
 # Sibling bond-api checkout (same layout in the bond working tree: ../bond-api).
-bond-api = { path = "../bond-api" }
+bond-api = { path = "vendor/bond-api" }
 
 [tool.pytest.ini_options]
 pythonpath = [".", "src"]
@@ -66,6 +66,8 @@ exclude_lines = [
 ]
 
 [tool.mypy]
+# Vendored copies are a dependency; their bytes are bound by scripts/vendor.py.
+exclude = ["(^|/)vendor/"]
 python_version = "3.12"
 mypy_path = ["src"]
 explicit_package_bases = true
@@ -80,6 +82,8 @@ module = "bond_api.*"
 ignore_missing_imports = true
 
 [tool.ruff]
+# The vendored copies are byte-identical to upstream and must stay that way.
+extend-exclude = ["vendor"]
 line-length = 88
 target-version = "py310"
 
