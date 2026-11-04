@@ -141,6 +141,24 @@ on mission literals not sourced from `scenario`.
 *Demonstrate:* reintroduce any C1 literal, then `uv run pytest tests/ -v` →
 fails.
 
+**V4 — the lint gate is red at this head, and the ledger called it clean.**
+Measured 2026-11-04 with the lock's own ruff (0.16.1), on a clean copy of the
+live head and again on the vendored branch tip: `uv run ruff check src/ scripts/
+tests/` → `tests/test_manuscript_variables.py:338:89: E501 Line too long (92 >
+88)`. One finding, identical at both ends — the vendoring adds none, and
+`vendor/` is excluded from both tools. `uv run ruff format --check src/ scripts/
+tests/` is rc=0 (34 files before, 36 after) and `uv run mypy src/ scripts/` is
+clean at both (16 source files, 17 after), so the format and type gates are
+green and only this one line is red. `docs/_generated/COUNTS.md` said "Lint |
+clean"; that row now carries the finding, and this row owns the fix rather than
+folding it into the vendoring change.
+*Done when:* the line at `tests/test_manuscript_variables.py:338` is wrapped to
+88 columns — it is one entry of a regex-pair table, so the wrap has to keep both
+halves of the pair literal and adjacent — and both `ruff check` and `ruff format
+--check` come back clean, with no rule suppressed and no `noqa` added.
+*Demonstrate:* `uv run ruff check src/ scripts/ tests/` prints "All checks
+passed!".
+
 ### Documentation
 
 **D1 — README's gate block is missing a gate.** `README.md` § "Gates" lists
@@ -246,9 +264,9 @@ recorded in [`docs/_generated/COUNTS.md`](docs/_generated/COUNTS.md) instead of
 being pinned here, so this block cannot go stale.
 
 ```bash
-uv sync --extra dev                                    # wires the sibling bond-api path dependency
+uv sync --extra dev                                    # dev tools; bond-api is vendored in the tree
 uv run pytest tests/ --cov=src --cov-fail-under=90     # all pass, >=90% coverage
-uv run ruff check src/ scripts/ tests/                 # clean
+uv run ruff check src/ scripts/ tests/                 # 1 finding at this head (V4)
 uv run ruff format --check src/ scripts/ tests/        # clean
 uv run mypy src/ scripts/                              # clean
 uv run python scripts/00_preflight.py                  # preflight PASS

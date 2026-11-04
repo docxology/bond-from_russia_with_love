@@ -37,7 +37,7 @@ before touching `tests/`.
 
 ```bash
 cd /path/to/from_russia_with_love   # this package's root
-uv sync --extra dev     # wires the sibling bond-api path dependency (../bond-api)
+uv sync --extra dev     # dev tools; bond-api is vendored in the tree
 ```
 
 `bond-api` is consumed as a local path dependency declared under

@@ -92,7 +92,7 @@ dict.
 
 ```bash
 cd /path/to/from_russia_with_love   # this package's root
-uv sync --extra dev            # wires the sibling bond-api path dependency (../bond-api)
+uv sync --extra dev            # dev tools; bond-api is vendored in the tree
 uv run pytest tests/ --cov=src --cov-fail-under=90
 uv run python scripts/00_preflight.py
 uv run python scripts/run_mission.py run "assess the LURES cover posture"
@@ -127,5 +127,7 @@ here, so this file cannot go stale.
 - [`TODO.md`](TODO.md) — remaining work and declared integration points
 - `manuscript/` — the package's paper; all metrics arrive as generated tokens
 
-The frozen protocol lives in the sibling `bond-api` package
-(`../bond-api/`), wired as a local path dependency in `pyproject.toml`.
+The frozen protocol lives in `vendor/bond-api/` — a copy of the `bond-api`
+repository carried in this tree and wired as a local path dependency in
+`pyproject.toml`. `scripts/vendor.py --check` re-verifies every copied file
+offline, so the copy cannot drift without failing the gate.
