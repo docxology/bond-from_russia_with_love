@@ -388,3 +388,8 @@ inventory updated for the new tokens.
   deepen the claim-ledger check to validate claim *values*, not just token
   existence.
 
+## Workflowz review — 2026-11-10
+
+No concrete new improvement survived this bounded, read-only review, so no actionable TODO item is added. Coverage comprised the root `AGENTS.md`, README, existing TODO, `.python-version`, `pyproject.toml`, both supplied CLI scripts, package exports, `bait_allocation.py`, `handoff_protocol.py`, and the figure package/generators. Historical TODO entries were not promoted to current findings: the current `__version__` and index-based allocator excerpts contradict the old C2/C4 descriptions, and the dated V4 lint measurement is not a current verification result. No production mock/fallback substitute was identified in the supplied source. The runtime pins were recorded but not converted into speculative work: `.python-version` is `3.15`, `requires-python` is `>=3.11`, Ruff targets `py310`, and mypy targets `3.12`; dependency floors and lock contents were not available for a verified target change.
+
+Re-review when a concrete runtime/dependency constraint, failing observable behavior, or a relevant source/manifest change supplies evidence for an independently closable outcome.
