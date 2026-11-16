@@ -21,7 +21,7 @@ from __future__ import annotations
 
 import hashlib
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 
 __all__ = [
     "HandoffState",
@@ -35,7 +35,7 @@ __all__ = [
 STAGE_ORDER = ("disarm", "meet", "challenge", "confirm", "handoff", "abort")
 
 
-class HandoffState(str, Enum):
+class HandoffState(StrEnum):
     """Valid states of a defector handoff protocol."""
 
     DISARM = "disarm"
