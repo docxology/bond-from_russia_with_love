@@ -28,7 +28,7 @@ from __future__ import annotations
 import math
 import random
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 
 __all__ = [
     "BITE_STEEPNESS",
@@ -90,7 +90,7 @@ class BaitProfile:
                 raise ValueError(f"{name} must be in [0, 1]")
 
 
-class TrapStage(str, Enum):
+class TrapStage(StrEnum):
     """Life-cycle stages of a single lure campaign."""
 
     DISARMED = "disarmed"
