@@ -5,6 +5,30 @@ with Love* (1963) as a deterministic mission-software package in the PROJECT
 BOND suite. The tree is versioned at
 `docxology/bond-from_russia_with_love` (default branch `main`).
 
+## Mission model
+
+```mermaid
+flowchart TD
+    accTitle: From Russia with Love implemented mission analyses
+    accDescr: Defector and cipher-machine bait pool, noisy radio intercepts and courier rendezvous windows feed Logistic bite-probability lure profiles and exact 0/1-knapsack target allocation; Layered XOR keystream SIGINT capture and 4-site TDOA Gauss-Newton emitter geolocation; EDF vs exact subset-DP courier scheduling and challenge/response handoff state machine. The mission adapter returns lure portfolio, emitter fix, rendezvous schedule and handoff verdict with provenance, then a debrief.
+    I["Defector/cipher-machine bait pool, noisy radio intercepts and courier rendezvous windows"]
+    G0["Logistic bite-probability lure profiles and exact 0/1-knapsack target allocation"]
+    I --> G0
+    G1["Layered XOR keystream SIGINT capture and 4-site TDOA Gauss-Newton emitter geolocation"]
+    I --> G1
+    G2["EDF vs exact subset-DP courier scheduling and challenge/response handoff state machine"]
+    I --> G2
+    O["mission.py: execute returns MissionOutcome<br/>Lure portfolio, emitter fix, rendezvous schedule, handoff verdict and provenance"]
+    G0 --> O
+    G1 --> O
+    G2 --> O
+    O --> F["debrief: mission summary"]
+```
+
+The branches group implemented capabilities; they do not imply a runtime order.
+
+**Source map:** [`entrapment_engine.py`](src/from_russia_with_love/entrapment_engine.py), [`bait_allocation.py`](src/from_russia_with_love/bait_allocation.py); [`sigint.py`](src/from_russia_with_love/sigint.py), [`direction_finding.py`](src/from_russia_with_love/direction_finding.py); [`courier_schedule.py`](src/from_russia_with_love/courier_schedule.py), [`handoff_protocol.py`](src/from_russia_with_love/handoff_protocol.py), [`scenario.py`](src/from_russia_with_love/scenario.py); [`mission.py`](src/from_russia_with_love/mission.py).
+
 ## The film, as a specification
 
 The 1963 film is a deception operation. A fabricated defector and a coveted
