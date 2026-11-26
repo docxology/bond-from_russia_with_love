@@ -1,5 +1,7 @@
 # docs/ — LURES
 
+[Package maintenance](package-maintenance.md) covers dependency and release records.
+
 Agent-facing documentation for the **LURES** package (From Russia with Love,
 1963 · mission codename LURES), a film package in the PROJECT BOND suite.
 Package-level orientation lives in the root `README.md`; this directory holds

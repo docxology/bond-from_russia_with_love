@@ -1,5 +1,7 @@
 # LURES — From Russia with Love (1963) · PROJECT BOND film package
 
+See [package maintenance](docs/package-maintenance.md) for dependency and citation records.
+
 Mission codename **LURES** implements the operational concepts of *From Russia
 with Love* (1963) as a deterministic mission-software package in the PROJECT
 BOND suite. The tree is versioned at
