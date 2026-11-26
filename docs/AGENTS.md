@@ -1,5 +1,7 @@
 # docs/ — Agent work area
 
+[Package maintenance](package-maintenance.md) identifies the dependency and citation records.
+
 The agent-facing documentation hub for **LURES** (From Russia with Love, 1963),
 a film package in the PROJECT BOND suite.
 
