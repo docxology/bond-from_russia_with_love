@@ -1,5 +1,8 @@
 # AGENTS.md — LURES (From Russia with Love, 1963)
 
+The [package maintenance guide](docs/package-maintenance.md) records the
+distribution identity, Python selection, dependency provenance, and citation metadata.
+
 Mission codename **LURES** — a PROJECT BOND film package implementing an
 entrapment/deception playbook engine, lure-budget allocation, SIGINT channel
 interception, TDOA direction finding, courier handoff scheduling, and a
